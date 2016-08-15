@@ -11,20 +11,6 @@ import Json.Decode exposing ((:=))
 import Task
 
 
--- main =
---   App.program
---     { init = init
---     , view = view
---     , update = update
---     , subscriptions = subscriptions }
-       
--- -- subscribtions
-   
--- subscriptions : Model -> Sub Msg
--- subscriptions model = Sub.none
-    
-
-
 -- MODEL
 
 type alias Post =

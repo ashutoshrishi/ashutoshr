@@ -14465,10 +14465,10 @@ var _user$project$Router$toHash = function (page) {
 var _user$project$Router$BlogPage = {ctor: 'BlogPage'};
 var _user$project$Router$HomePage = {ctor: 'HomePage'};
 var _user$project$Router$defaultPage = _user$project$Router$HomePage;
-var _user$project$Router$routeList = _elm_lang$core$Native_List.fromArray(
+var _user$project$Router$routeNames = _elm_lang$core$Native_List.fromArray(
 	[
-		{ctor: '_Tuple2', _0: 'home', _1: _user$project$Router$HomePage},
-		{ctor: '_Tuple2', _0: 'blog', _1: _user$project$Router$BlogPage}
+		{ctor: '_Tuple2', _0: _user$project$Router$HomePage, _1: 'home'},
+		{ctor: '_Tuple2', _0: _user$project$Router$BlogPage, _1: 'blog'}
 	]);
 var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
 	_elm_lang$core$Native_List.fromArray(
@@ -14513,7 +14513,7 @@ var _user$project$Component_Header$ChangePage = function (a) {
 var _user$project$Component_Header$makeLink = F2(
 	function (active, _p2) {
 		var _p3 = _p2;
-		var _p4 = _p3._1;
+		var _p4 = _p3._0;
 		var link = A2(
 			_elm_lang$html$Html$a,
 			_elm_lang$core$Native_List.fromArray(
@@ -14523,7 +14523,7 @@ var _user$project$Component_Header$makeLink = F2(
 				]),
 			_elm_lang$core$Native_List.fromArray(
 				[
-					_elm_lang$html$Html$text(_p3._0)
+					_elm_lang$html$Html$text(_p3._1)
 				]));
 		var activeClass = _elm_lang$core$Native_Utils.eq(active, _p4) ? 'current' : '';
 		return A2(
@@ -14545,7 +14545,7 @@ var _user$project$Component_Header$headerLinks = function (active) {
 		A2(
 			_elm_lang$core$List$map,
 			_user$project$Component_Header$makeLink(active),
-			_user$project$Router$routeList));
+			_user$project$Router$routeNames));
 };
 var _user$project$Component_Header$view = function (model) {
 	var title = A2(

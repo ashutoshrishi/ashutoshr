@@ -40,12 +40,20 @@ view model =
     ]]
 
 
+{-| Create a horizantal list of links to all the routes in [routeNames]. The
+page that is currently active and displayed in the model will be highlighted
+differently and hence [active] is threaded through the function.
+-}    
 headerLinks : Page -> Html Msg
 headerLinks active =
-  ul [ class "nav nav-pills" ] (List.map (makeLink active) routeList)
-    
-makeLink : Page -> (String, Page) -> Html Msg
-makeLink active (to, page) =
+  ul [ class "nav nav-pills" ] (List.map (makeLink active) routeNames)
+
+{-| Creates a link with text [to], clicking which invokes a message to change
+the models' active page to [page]. The link corresponding to the page [active]
+is the current displayed page and will be styled a bit differently.
+-}    
+makeLink : Page -> (Page, String) -> Html Msg
+makeLink active (page, to) =
   let activeClass = if active == page then "current" else ""
       link = a [ onClick (ChangePage page) ] [ text to ]
   in li [ class activeClass ] [ link ]
