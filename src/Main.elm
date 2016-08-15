@@ -1,86 +1,97 @@
+import Bootstrap.Html exposing (..)
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import String
 import Navigation
-import UrlParser exposing (Parser, format, oneOf)
+-- import UrlParser exposing (Parser, format, oneOf)
+import Router exposing (..)
 -- Components
-import Component.Home as Home
+import Component.Blog as Blog
+import Component.Header as Header
 
 main =
   Navigation.program (Navigation.makeParser hashParser)
-    { init = init
-    , view = view
-    , update = update
-    , urlUpdate = urlUpdate
+    { init          = init
+    , view          = view
+    , update        = update
+    , urlUpdate     = urlUpdate
     , subscriptions = subscriptions
     }
 
--- URL parser
-
-type Page = HomePage | BlogPage
-
-toHash : Page -> String
-toHash page =
-  case page of
-    HomePage -> "#home"
-    BlogPage -> "#blog"
-
-
-hashParser : Navigation.Location -> Result String Page
-hashParser location =
-  let hashed = (String.dropLeft 1 location.hash)
-  in UrlParser.parse identity pageParser hashed
-
-    
-pageParser : Parser (Page -> a) a
-pageParser =
-  oneOf
-    [ format HomePage (UrlParser.s "home")
-    , format BlogPage (UrlParser.s "blog")
-    ]
-
 
 -- MODEL
+
 type alias Model =
-  { page : Page }
+  { page : Page
+  , headerModel : Header.Model
+  , blogModel : Blog.Model
+  }
 
 
-init : Result String Page -> (Model, Cmd msg)
-init result = urlUpdate result (Model HomePage)
+init : Result String Page -> (Model, Cmd Msg)
+init result =
+  let (blogInit, bm) = Blog.init
+      (headerInit, hm) = Header.init
+      mainInit = Model defaultPage headerInit blogInit
+      (mainModel, _) = urlUpdate result mainInit                       
+  in ( mainModel
+     , Cmd.map BlogMsg bm )
+
 
 -- UPDATE
 
+type Msg = BlogMsg Blog.Msg
+         | HeaderMsg Header.Msg
 
-update : msg -> Model -> (Model, Cmd msg)
-update _ model = (model, Cmd.none)
+  
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+  case msg of
+    BlogMsg bmsg ->
+      let (newModel, newMsg) = Blog.update bmsg model.blogModel
+      in ( { model | blogModel = newModel}
+         , Cmd.map BlogMsg newMsg
+         )
+
+    HeaderMsg hmsg ->
+      let (newHeader, newMsg) = Header.update hmsg model.headerModel
+      in ( { model | headerModel = newHeader}
+         , Cmd.map HeaderMsg newMsg
+         )
                  
 
-urlUpdate : Result String Page -> Model -> (Model, Cmd msg)
+{-| Called on a change of url with the result of url parser and the current
+model. -}
+urlUpdate : Result String Page -> Model -> (Model, Cmd Msg)
 urlUpdate result model =
   case Debug.log "result" result of
-    Err _ ->
+    Err err ->
       (model, Navigation.modifyUrl (toHash model.page))
     Ok page ->
-      ({ model
-        | page = page
-       }, Cmd.none)
+      ({ model | page = page }, Cmd.none)
 
 
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub msg
-subscriptions model =
-  Sub.none
+subscriptions model = Sub.none
   
 -- VIEW            
 
-view : Model -> Html msg
-view model = viewPage model
+{-| View the Index page, with the content area changing according to the
+current url page. -}
+view : Model -> Html Msg
+view model =
+  containerFluid_
+    [ App.map HeaderMsg (Header.view model.headerModel)
+    , row_ [ colMd_ 12 12 12 [ viewPage model ] ]
+    ]
 
 
-viewPage : Model -> Html msg
+{-| Run the view function for the current page in the model. -}  
+viewPage : Model -> Html Msg
 viewPage model =
   case model.page of
-    HomePage -> Home.view Home.init
-    BlogPage -> div [] [text "BLOG NOT IMPLEMENTED"]
+    HomePage -> App.map BlogMsg (Blog.view model.blogModel)
+    BlogPage -> App.map BlogMsg (Blog.view model.blogModel)

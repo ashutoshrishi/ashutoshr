@@ -13339,9 +13339,150 @@ function on(node)
 	};
 }
 
+var rAF = typeof requestAnimationFrame !== 'undefined'
+	? requestAnimationFrame
+	: function(callback) { callback(); };
+
+function withNode(id, doStuff)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		rAF(function()
+		{
+			var node = document.getElementById(id);
+			if (node === null)
+			{
+				callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'NotFound', _0: id }));
+				return;
+			}
+			callback(_elm_lang$core$Native_Scheduler.succeed(doStuff(node)));
+		});
+	});
+}
+
+
+// FOCUS
+
+function focus(id)
+{
+	return withNode(id, function(node) {
+		node.focus();
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function blur(id)
+{
+	return withNode(id, function(node) {
+		node.blur();
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+
+// SCROLLING
+
+function getScrollTop(id)
+{
+	return withNode(id, function(node) {
+		return node.scrollTop;
+	});
+}
+
+function setScrollTop(id, desiredScrollTop)
+{
+	return withNode(id, function(node) {
+		node.scrollTop = desiredScrollTop;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function toBottom(id)
+{
+	return withNode(id, function(node) {
+		node.scrollTop = node.scrollHeight;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function getScrollLeft(id)
+{
+	return withNode(id, function(node) {
+		return node.scrollLeft;
+	});
+}
+
+function setScrollLeft(id, desiredScrollLeft)
+{
+	return withNode(id, function(node) {
+		node.scrollLeft = desiredScrollLeft;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function toRight(id)
+{
+	return withNode(id, function(node) {
+		node.scrollLeft = node.scrollWidth;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+
+// SIZE
+
+function width(options, id)
+{
+	return withNode(id, function(node) {
+		switch (options.ctor)
+		{
+			case 'Content':
+				return node.scrollWidth;
+			case 'VisibleContent':
+				return node.clientWidth;
+			case 'VisibleContentWithBorders':
+				return node.offsetWidth;
+			case 'VisibleContentWithBordersAndMargins':
+				var rect = node.getBoundingClientRect();
+				return rect.right - rect.left;
+		}
+	});
+}
+
+function height(options, id)
+{
+	return withNode(id, function(node) {
+		switch (options.ctor)
+		{
+			case 'Content':
+				return node.scrollHeight;
+			case 'VisibleContent':
+				return node.clientHeight;
+			case 'VisibleContentWithBorders':
+				return node.offsetHeight;
+			case 'VisibleContentWithBordersAndMargins':
+				var rect = node.getBoundingClientRect();
+				return rect.bottom - rect.top;
+		}
+	});
+}
+
 return {
 	onDocument: F3(on(document)),
-	onWindow: F3(on(window))
+	onWindow: F3(on(window)),
+
+	focus: focus,
+	blur: blur,
+
+	getScrollTop: getScrollTop,
+	setScrollTop: F2(setScrollTop),
+	getScrollLeft: getScrollLeft,
+	setScrollLeft: F2(setScrollLeft),
+	toBottom: toBottom,
+	toRight: toRight,
+
+	height: F2(height),
+	width: F2(width)
 };
 
 }();
@@ -13696,6 +13837,364 @@ var _elm_lang$navigation$Navigation$subMap = F2(
 	});
 _elm_lang$core$Native_Platform.effectManagers['Navigation'] = {pkg: 'elm-lang/navigation', init: _elm_lang$navigation$Navigation$init, onEffects: _elm_lang$navigation$Navigation$onEffects, onSelfMsg: _elm_lang$navigation$Navigation$onSelfMsg, tag: 'fx', cmdMap: _elm_lang$navigation$Navigation$cmdMap, subMap: _elm_lang$navigation$Navigation$subMap};
 
+//import Dict, List, Maybe, Native.Scheduler //
+
+var _evancz$elm_http$Native_Http = function() {
+
+function send(settings, request)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+		var req = new XMLHttpRequest();
+
+		// start
+		if (settings.onStart.ctor === 'Just')
+		{
+			req.addEventListener('loadStart', function() {
+				var task = settings.onStart._0;
+				_elm_lang$core$Native_Scheduler.rawSpawn(task);
+			});
+		}
+
+		// progress
+		if (settings.onProgress.ctor === 'Just')
+		{
+			req.addEventListener('progress', function(event) {
+				var progress = !event.lengthComputable
+					? _elm_lang$core$Maybe$Nothing
+					: _elm_lang$core$Maybe$Just({
+						loaded: event.loaded,
+						total: event.total
+					});
+				var task = settings.onProgress._0(progress);
+				_elm_lang$core$Native_Scheduler.rawSpawn(task);
+			});
+		}
+
+		// end
+		req.addEventListener('error', function() {
+			return callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'RawNetworkError' }));
+		});
+
+		req.addEventListener('timeout', function() {
+			return callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'RawTimeout' }));
+		});
+
+		req.addEventListener('load', function() {
+			return callback(_elm_lang$core$Native_Scheduler.succeed(toResponse(req)));
+		});
+
+		req.open(request.verb, request.url, true);
+
+		// set all the headers
+		function setHeader(pair) {
+			req.setRequestHeader(pair._0, pair._1);
+		}
+		A2(_elm_lang$core$List$map, setHeader, request.headers);
+
+		// set the timeout
+		req.timeout = settings.timeout;
+
+		// enable this withCredentials thing
+		req.withCredentials = settings.withCredentials;
+
+		// ask for a specific MIME type for the response
+		if (settings.desiredResponseType.ctor === 'Just')
+		{
+			req.overrideMimeType(settings.desiredResponseType._0);
+		}
+
+		// actuall send the request
+		if(request.body.ctor === "BodyFormData")
+		{
+			req.send(request.body.formData)
+		}
+		else
+		{
+			req.send(request.body._0);
+		}
+
+		return function() {
+			req.abort();
+		};
+	});
+}
+
+
+// deal with responses
+
+function toResponse(req)
+{
+	var tag = req.responseType === 'blob' ? 'Blob' : 'Text'
+	var response = tag === 'Blob' ? req.response : req.responseText;
+	return {
+		status: req.status,
+		statusText: req.statusText,
+		headers: parseHeaders(req.getAllResponseHeaders()),
+		url: req.responseURL,
+		value: { ctor: tag, _0: response }
+	};
+}
+
+
+function parseHeaders(rawHeaders)
+{
+	var headers = _elm_lang$core$Dict$empty;
+
+	if (!rawHeaders)
+	{
+		return headers;
+	}
+
+	var headerPairs = rawHeaders.split('\u000d\u000a');
+	for (var i = headerPairs.length; i--; )
+	{
+		var headerPair = headerPairs[i];
+		var index = headerPair.indexOf('\u003a\u0020');
+		if (index > 0)
+		{
+			var key = headerPair.substring(0, index);
+			var value = headerPair.substring(index + 2);
+
+			headers = A3(_elm_lang$core$Dict$update, key, function(oldValue) {
+				if (oldValue.ctor === 'Just')
+				{
+					return _elm_lang$core$Maybe$Just(value + ', ' + oldValue._0);
+				}
+				return _elm_lang$core$Maybe$Just(value);
+			}, headers);
+		}
+	}
+
+	return headers;
+}
+
+
+function multipart(dataList)
+{
+	var formData = new FormData();
+
+	while (dataList.ctor !== '[]')
+	{
+		var data = dataList._0;
+		if (data.ctor === 'StringData')
+		{
+			formData.append(data._0, data._1);
+		}
+		else
+		{
+			var fileName = data._1.ctor === 'Nothing'
+				? undefined
+				: data._1._0;
+			formData.append(data._0, data._2, fileName);
+		}
+		dataList = dataList._1;
+	}
+
+	return { ctor: 'BodyFormData', formData: formData };
+}
+
+
+function uriEncode(string)
+{
+	return encodeURIComponent(string);
+}
+
+function uriDecode(string)
+{
+	return decodeURIComponent(string);
+}
+
+return {
+	send: F2(send),
+	multipart: multipart,
+	uriEncode: uriEncode,
+	uriDecode: uriDecode
+};
+
+}();
+
+var _evancz$elm_http$Http$send = _evancz$elm_http$Native_Http.send;
+var _evancz$elm_http$Http$defaultSettings = {timeout: 0, onStart: _elm_lang$core$Maybe$Nothing, onProgress: _elm_lang$core$Maybe$Nothing, desiredResponseType: _elm_lang$core$Maybe$Nothing, withCredentials: false};
+var _evancz$elm_http$Http$multipart = _evancz$elm_http$Native_Http.multipart;
+var _evancz$elm_http$Http$uriDecode = _evancz$elm_http$Native_Http.uriDecode;
+var _evancz$elm_http$Http$uriEncode = _evancz$elm_http$Native_Http.uriEncode;
+var _evancz$elm_http$Http$queryEscape = function (string) {
+	return A2(
+		_elm_lang$core$String$join,
+		'+',
+		A2(
+			_elm_lang$core$String$split,
+			'%20',
+			_evancz$elm_http$Http$uriEncode(string)));
+};
+var _evancz$elm_http$Http$queryPair = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_evancz$elm_http$Http$queryEscape(_p1._0),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'=',
+			_evancz$elm_http$Http$queryEscape(_p1._1)));
+};
+var _evancz$elm_http$Http$url = F2(
+	function (baseUrl, args) {
+		var _p2 = args;
+		if (_p2.ctor === '[]') {
+			return baseUrl;
+		} else {
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				baseUrl,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'?',
+					A2(
+						_elm_lang$core$String$join,
+						'&',
+						A2(_elm_lang$core$List$map, _evancz$elm_http$Http$queryPair, args))));
+		}
+	});
+var _evancz$elm_http$Http$Request = F4(
+	function (a, b, c, d) {
+		return {verb: a, headers: b, url: c, body: d};
+	});
+var _evancz$elm_http$Http$Settings = F5(
+	function (a, b, c, d, e) {
+		return {timeout: a, onStart: b, onProgress: c, desiredResponseType: d, withCredentials: e};
+	});
+var _evancz$elm_http$Http$Response = F5(
+	function (a, b, c, d, e) {
+		return {status: a, statusText: b, headers: c, url: d, value: e};
+	});
+var _evancz$elm_http$Http$TODO_implement_blob_in_another_library = {ctor: 'TODO_implement_blob_in_another_library'};
+var _evancz$elm_http$Http$TODO_implement_file_in_another_library = {ctor: 'TODO_implement_file_in_another_library'};
+var _evancz$elm_http$Http$BodyBlob = function (a) {
+	return {ctor: 'BodyBlob', _0: a};
+};
+var _evancz$elm_http$Http$BodyFormData = {ctor: 'BodyFormData'};
+var _evancz$elm_http$Http$ArrayBuffer = {ctor: 'ArrayBuffer'};
+var _evancz$elm_http$Http$BodyString = function (a) {
+	return {ctor: 'BodyString', _0: a};
+};
+var _evancz$elm_http$Http$string = _evancz$elm_http$Http$BodyString;
+var _evancz$elm_http$Http$Empty = {ctor: 'Empty'};
+var _evancz$elm_http$Http$empty = _evancz$elm_http$Http$Empty;
+var _evancz$elm_http$Http$FileData = F3(
+	function (a, b, c) {
+		return {ctor: 'FileData', _0: a, _1: b, _2: c};
+	});
+var _evancz$elm_http$Http$BlobData = F3(
+	function (a, b, c) {
+		return {ctor: 'BlobData', _0: a, _1: b, _2: c};
+	});
+var _evancz$elm_http$Http$blobData = _evancz$elm_http$Http$BlobData;
+var _evancz$elm_http$Http$StringData = F2(
+	function (a, b) {
+		return {ctor: 'StringData', _0: a, _1: b};
+	});
+var _evancz$elm_http$Http$stringData = _evancz$elm_http$Http$StringData;
+var _evancz$elm_http$Http$Blob = function (a) {
+	return {ctor: 'Blob', _0: a};
+};
+var _evancz$elm_http$Http$Text = function (a) {
+	return {ctor: 'Text', _0: a};
+};
+var _evancz$elm_http$Http$RawNetworkError = {ctor: 'RawNetworkError'};
+var _evancz$elm_http$Http$RawTimeout = {ctor: 'RawTimeout'};
+var _evancz$elm_http$Http$BadResponse = F2(
+	function (a, b) {
+		return {ctor: 'BadResponse', _0: a, _1: b};
+	});
+var _evancz$elm_http$Http$UnexpectedPayload = function (a) {
+	return {ctor: 'UnexpectedPayload', _0: a};
+};
+var _evancz$elm_http$Http$handleResponse = F2(
+	function (handle, response) {
+		if ((_elm_lang$core$Native_Utils.cmp(200, response.status) < 1) && (_elm_lang$core$Native_Utils.cmp(response.status, 300) < 0)) {
+			var _p3 = response.value;
+			if (_p3.ctor === 'Text') {
+				return handle(_p3._0);
+			} else {
+				return _elm_lang$core$Task$fail(
+					_evancz$elm_http$Http$UnexpectedPayload('Response body is a blob, expecting a string.'));
+			}
+		} else {
+			return _elm_lang$core$Task$fail(
+				A2(_evancz$elm_http$Http$BadResponse, response.status, response.statusText));
+		}
+	});
+var _evancz$elm_http$Http$NetworkError = {ctor: 'NetworkError'};
+var _evancz$elm_http$Http$Timeout = {ctor: 'Timeout'};
+var _evancz$elm_http$Http$promoteError = function (rawError) {
+	var _p4 = rawError;
+	if (_p4.ctor === 'RawTimeout') {
+		return _evancz$elm_http$Http$Timeout;
+	} else {
+		return _evancz$elm_http$Http$NetworkError;
+	}
+};
+var _evancz$elm_http$Http$getString = function (url) {
+	var request = {
+		verb: 'GET',
+		headers: _elm_lang$core$Native_List.fromArray(
+			[]),
+		url: url,
+		body: _evancz$elm_http$Http$empty
+	};
+	return A2(
+		_elm_lang$core$Task$andThen,
+		A2(
+			_elm_lang$core$Task$mapError,
+			_evancz$elm_http$Http$promoteError,
+			A2(_evancz$elm_http$Http$send, _evancz$elm_http$Http$defaultSettings, request)),
+		_evancz$elm_http$Http$handleResponse(_elm_lang$core$Task$succeed));
+};
+var _evancz$elm_http$Http$fromJson = F2(
+	function (decoder, response) {
+		var decode = function (str) {
+			var _p5 = A2(_elm_lang$core$Json_Decode$decodeString, decoder, str);
+			if (_p5.ctor === 'Ok') {
+				return _elm_lang$core$Task$succeed(_p5._0);
+			} else {
+				return _elm_lang$core$Task$fail(
+					_evancz$elm_http$Http$UnexpectedPayload(_p5._0));
+			}
+		};
+		return A2(
+			_elm_lang$core$Task$andThen,
+			A2(_elm_lang$core$Task$mapError, _evancz$elm_http$Http$promoteError, response),
+			_evancz$elm_http$Http$handleResponse(decode));
+	});
+var _evancz$elm_http$Http$get = F2(
+	function (decoder, url) {
+		var request = {
+			verb: 'GET',
+			headers: _elm_lang$core$Native_List.fromArray(
+				[]),
+			url: url,
+			body: _evancz$elm_http$Http$empty
+		};
+		return A2(
+			_evancz$elm_http$Http$fromJson,
+			decoder,
+			A2(_evancz$elm_http$Http$send, _evancz$elm_http$Http$defaultSettings, request));
+	});
+var _evancz$elm_http$Http$post = F3(
+	function (decoder, url, body) {
+		var request = {
+			verb: 'POST',
+			headers: _elm_lang$core$Native_List.fromArray(
+				[]),
+			url: url,
+			body: body
+		};
+		return A2(
+			_evancz$elm_http$Http$fromJson,
+			decoder,
+			A2(_evancz$elm_http$Http$send, _evancz$elm_http$Http$defaultSettings, request));
+	});
+
 var _evancz$url_parser$UrlParser$oneOfHelp = F3(
 	function (choices, chunks, formatter) {
 		oneOfHelp:
@@ -13874,7 +14373,17 @@ var _evancz$url_parser$UrlParser$format = F2(
 				}));
 	});
 
-var _user$project$Component_Header$view = function (model) {
+var _user$project$Component_Blog$viewPostTitle = function (p) {
+	return A2(
+		_elm_lang$html$Html$li,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(p.title)
+			]));
+};
+var _user$project$Component_Blog$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -13882,28 +14391,300 @@ var _user$project$Component_Header$view = function (model) {
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(
-				_elm_lang$html$Html$h3,
+				_elm_lang$html$Html$ul,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text('Ashutosh Rishi Ranjan')
-					])),
-				A2(
-				_elm_lang$html$Html$hr,
-				_elm_lang$core$Native_List.fromArray(
-					[]),
-				_elm_lang$core$Native_List.fromArray(
-					[]))
+				A2(_elm_lang$core$List$map, _user$project$Component_Blog$viewPostTitle, model.postList))
 			]));
 };
-var _user$project$Component_Header$EmptyModel = {ctor: 'EmptyModel'};
-var _user$project$Component_Header$init = _user$project$Component_Header$EmptyModel;
+var _user$project$Component_Blog$Post = F2(
+	function (a, b) {
+		return {title: a, content: b};
+	});
+var _user$project$Component_Blog$decodePosts = function () {
+	var postDecoder = function () {
+		var content = A2(_elm_lang$core$Json_Decode_ops[':='], 'content', _elm_lang$core$Json_Decode$string);
+		var title = A2(_elm_lang$core$Json_Decode_ops[':='], 'title', _elm_lang$core$Json_Decode$string);
+		return A3(_elm_lang$core$Json_Decode$object2, _user$project$Component_Blog$Post, title, content);
+	}();
+	var postListDecoder = _elm_lang$core$Json_Decode$list(postDecoder);
+	return A2(_elm_lang$core$Json_Decode_ops[':='], 'posts', postListDecoder);
+}();
+var _user$project$Component_Blog$Model = function (a) {
+	return {postList: a};
+};
+var _user$project$Component_Blog$FetchFail = function (a) {
+	return {ctor: 'FetchFail', _0: a};
+};
+var _user$project$Component_Blog$GotPosts = function (a) {
+	return {ctor: 'GotPosts', _0: a};
+};
+var _user$project$Component_Blog$fetchPosts = function () {
+	var url = 'http://localhost:3000/posts';
+	return A3(
+		_elm_lang$core$Task$perform,
+		_user$project$Component_Blog$FetchFail,
+		_user$project$Component_Blog$GotPosts,
+		A2(_evancz$elm_http$Http$get, _user$project$Component_Blog$decodePosts, url));
+}();
+var _user$project$Component_Blog$init = {
+	ctor: '_Tuple2',
+	_0: _user$project$Component_Blog$Model(
+		_elm_lang$core$Native_List.fromArray(
+			[])),
+	_1: _user$project$Component_Blog$fetchPosts
+};
+var _user$project$Component_Blog$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'GetPosts':
+				return {ctor: '_Tuple2', _0: model, _1: _user$project$Component_Blog$fetchPosts};
+			case 'GotPosts':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{postList: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$Component_Blog$GetPosts = {ctor: 'GetPosts'};
 
-var _user$project$Component_Home$view = function (model) {
+var _user$project$Router$toHash = function (page) {
+	var _p0 = page;
+	if (_p0.ctor === 'HomePage') {
+		return '#home';
+	} else {
+		return '#blog';
+	}
+};
+var _user$project$Router$BlogPage = {ctor: 'BlogPage'};
+var _user$project$Router$HomePage = {ctor: 'HomePage'};
+var _user$project$Router$defaultPage = _user$project$Router$HomePage;
+var _user$project$Router$routeList = _elm_lang$core$Native_List.fromArray(
+	[
+		{ctor: '_Tuple2', _0: 'home', _1: _user$project$Router$HomePage},
+		{ctor: '_Tuple2', _0: 'blog', _1: _user$project$Router$BlogPage}
+	]);
+var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
+	_elm_lang$core$Native_List.fromArray(
+		[
+			A2(
+			_evancz$url_parser$UrlParser$format,
+			_user$project$Router$HomePage,
+			_evancz$url_parser$UrlParser$s('home')),
+			A2(
+			_evancz$url_parser$UrlParser$format,
+			_user$project$Router$BlogPage,
+			_evancz$url_parser$UrlParser$s('blog'))
+		]));
+var _user$project$Router$hashParser = function (location) {
+	var hashed = A2(_elm_lang$core$String$dropLeft, 1, location.hash);
+	return A3(_evancz$url_parser$UrlParser$parse, _elm_lang$core$Basics$identity, _user$project$Router$pageParser, hashed);
+};
+
+var _user$project$Component_Header$Model = function (a) {
+	return {activePage: a};
+};
+var _user$project$Component_Header$init = {
+	ctor: '_Tuple2',
+	_0: _user$project$Component_Header$Model(_user$project$Router$defaultPage),
+	_1: _elm_lang$core$Platform_Cmd$none
+};
+var _user$project$Component_Header$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		var _p1 = _p0._0;
+		var urlMsg = _elm_lang$navigation$Navigation$modifyUrl(
+			_user$project$Router$toHash(_p1));
+		return {
+			ctor: '_Tuple2',
+			_0: _user$project$Component_Header$Model(_p1),
+			_1: urlMsg
+		};
+	});
+var _user$project$Component_Header$ChangePage = function (a) {
+	return {ctor: 'ChangePage', _0: a};
+};
+var _user$project$Component_Header$makeLink = F2(
+	function (active, _p2) {
+		var _p3 = _p2;
+		var _p4 = _p3._1;
+		var link = A2(
+			_elm_lang$html$Html$a,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Events$onClick(
+					_user$project$Component_Header$ChangePage(_p4))
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text(_p3._0)
+				]));
+		var activeClass = _elm_lang$core$Native_Utils.eq(active, _p4) ? 'current' : '';
+		return A2(
+			_elm_lang$html$Html$li,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$class(activeClass)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[link]));
+	});
+var _user$project$Component_Header$headerLinks = function (active) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('nav nav-pills')
+			]),
+		A2(
+			_elm_lang$core$List$map,
+			_user$project$Component_Header$makeLink(active),
+			_user$project$Router$routeList));
+};
+var _user$project$Component_Header$view = function (model) {
+	var title = A2(
+		_elm_lang$html$Html$p,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text('Ashutosh Rishi Ranjan')
+			]));
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('header')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A4(
+						_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_,
+						12,
+						12,
+						3,
+						_elm_lang$core$Native_List.fromArray(
+							[title])),
+						A4(
+						_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_,
+						12,
+						12,
+						9,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_user$project$Component_Header$headerLinks(model.activePage)
+							]))
+					]))
+			]));
+};
+
+var _user$project$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
+};
+var _user$project$Main$urlUpdate = F2(
+	function (result, model) {
+		var _p0 = A2(_elm_lang$core$Debug$log, 'result', result);
+		if (_p0.ctor === 'Err') {
+			return {
+				ctor: '_Tuple2',
+				_0: model,
+				_1: _elm_lang$navigation$Navigation$modifyUrl(
+					_user$project$Router$toHash(model.page))
+			};
+		} else {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{page: _p0._0}),
+				_1: _elm_lang$core$Platform_Cmd$none
+			};
+		}
+	});
+var _user$project$Main$Model = F3(
+	function (a, b, c) {
+		return {page: a, headerModel: b, blogModel: c};
+	});
+var _user$project$Main$HeaderMsg = function (a) {
+	return {ctor: 'HeaderMsg', _0: a};
+};
+var _user$project$Main$BlogMsg = function (a) {
+	return {ctor: 'BlogMsg', _0: a};
+};
+var _user$project$Main$init = function (result) {
+	var _p1 = _user$project$Component_Header$init;
+	var headerInit = _p1._0;
+	var hm = _p1._1;
+	var _p2 = _user$project$Component_Blog$init;
+	var blogInit = _p2._0;
+	var bm = _p2._1;
+	var mainInit = A3(_user$project$Main$Model, _user$project$Router$defaultPage, headerInit, blogInit);
+	var _p3 = A2(_user$project$Main$urlUpdate, result, mainInit);
+	var mainModel = _p3._0;
+	return {
+		ctor: '_Tuple2',
+		_0: mainModel,
+		_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, bm)
+	};
+};
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p4 = msg;
+		if (_p4.ctor === 'BlogMsg') {
+			var _p5 = A2(_user$project$Component_Blog$update, _p4._0, model.blogModel);
+			var newModel = _p5._0;
+			var newMsg = _p5._1;
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{blogModel: newModel}),
+				_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, newMsg)
+			};
+		} else {
+			var _p6 = A2(_user$project$Component_Header$update, _p4._0, model.headerModel);
+			var newHeader = _p6._0;
+			var newMsg = _p6._1;
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{headerModel: newHeader}),
+				_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$HeaderMsg, newMsg)
+			};
+		}
+	});
+var _user$project$Main$viewPage = function (model) {
+	var _p7 = model.page;
+	if (_p7.ctor === 'HomePage') {
+		return A2(
+			_elm_lang$html$Html_App$map,
+			_user$project$Main$BlogMsg,
+			_user$project$Component_Blog$view(model.blogModel));
+	} else {
+		return A2(
+			_elm_lang$html$Html_App$map,
+			_user$project$Main$BlogMsg,
+			_user$project$Component_Blog$view(model.blogModel));
+	}
+};
+var _user$project$Main$view = function (model) {
 	return _circuithub$elm_bootstrap_html$Bootstrap_Html$containerFluid_(
 		_elm_lang$core$Native_List.fromArray(
 			[
+				A2(
+				_elm_lang$html$Html_App$map,
+				_user$project$Main$HeaderMsg,
+				_user$project$Component_Header$view(model.headerModel)),
 				_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
 				_elm_lang$core$Native_List.fromArray(
 					[
@@ -13914,100 +14695,15 @@ var _user$project$Component_Home$view = function (model) {
 						12,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_user$project$Component_Header$view(model.header)
+								_user$project$Main$viewPage(model)
 							]))
 					]))
 			]));
 };
-var _user$project$Component_Home$Model = function (a) {
-	return {header: a};
-};
-var _user$project$Component_Home$init = _user$project$Component_Home$Model(_user$project$Component_Header$init);
-
-var _user$project$Main$viewPage = function (model) {
-	var _p0 = model.page;
-	if (_p0.ctor === 'HomePage') {
-		return _user$project$Component_Home$view(_user$project$Component_Home$init);
-	} else {
-		return A2(
-			_elm_lang$html$Html$div,
-			_elm_lang$core$Native_List.fromArray(
-				[]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html$text('BLOG NOT IMPLEMENTED')
-				]));
-	}
-};
-var _user$project$Main$view = function (model) {
-	return _user$project$Main$viewPage(model);
-};
-var _user$project$Main$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
-var _user$project$Main$update = F2(
-	function (_p1, model) {
-		return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-	});
-var _user$project$Main$toHash = function (page) {
-	var _p2 = page;
-	if (_p2.ctor === 'HomePage') {
-		return '#home';
-	} else {
-		return '#blog';
-	}
-};
-var _user$project$Main$urlUpdate = F2(
-	function (result, model) {
-		var _p3 = A2(_elm_lang$core$Debug$log, 'result', result);
-		if (_p3.ctor === 'Err') {
-			return {
-				ctor: '_Tuple2',
-				_0: model,
-				_1: _elm_lang$navigation$Navigation$modifyUrl(
-					_user$project$Main$toHash(model.page))
-			};
-		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					model,
-					{page: _p3._0}),
-				_1: _elm_lang$core$Platform_Cmd$none
-			};
-		}
-	});
-var _user$project$Main$Model = function (a) {
-	return {page: a};
-};
-var _user$project$Main$BlogPage = {ctor: 'BlogPage'};
-var _user$project$Main$HomePage = {ctor: 'HomePage'};
-var _user$project$Main$pageParser = _evancz$url_parser$UrlParser$oneOf(
-	_elm_lang$core$Native_List.fromArray(
-		[
-			A2(
-			_evancz$url_parser$UrlParser$format,
-			_user$project$Main$HomePage,
-			_evancz$url_parser$UrlParser$s('home')),
-			A2(
-			_evancz$url_parser$UrlParser$format,
-			_user$project$Main$BlogPage,
-			_evancz$url_parser$UrlParser$s('blog'))
-		]));
-var _user$project$Main$hashParser = function (location) {
-	var hashed = A2(_elm_lang$core$String$dropLeft, 1, location.hash);
-	return A3(_evancz$url_parser$UrlParser$parse, _elm_lang$core$Basics$identity, _user$project$Main$pageParser, hashed);
-};
-var _user$project$Main$init = function (result) {
-	return A2(
-		_user$project$Main$urlUpdate,
-		result,
-		_user$project$Main$Model(_user$project$Main$HomePage));
-};
 var _user$project$Main$main = {
 	main: A2(
 		_elm_lang$navigation$Navigation$program,
-		_elm_lang$navigation$Navigation$makeParser(_user$project$Main$hashParser),
+		_elm_lang$navigation$Navigation$makeParser(_user$project$Router$hashParser),
 		{init: _user$project$Main$init, view: _user$project$Main$view, update: _user$project$Main$update, urlUpdate: _user$project$Main$urlUpdate, subscriptions: _user$project$Main$subscriptions})
 };
 
