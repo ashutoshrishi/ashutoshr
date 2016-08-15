@@ -9,6 +9,7 @@ import Router exposing (..)
 -- Components
 import Component.Blog as Blog
 import Component.Header as Header
+import Component.Post as PostComp
 
 main =
   Navigation.program (Navigation.makeParser hashParser)
@@ -26,6 +27,7 @@ type alias Model =
   { page : Page
   , headerModel : Header.Model
   , blogModel : Blog.Model
+  , postModel : PostComp.Model
   }
 
 
@@ -33,7 +35,8 @@ init : Result String Page -> (Model, Cmd Msg)
 init result =
   let (blogInit, bm) = Blog.init
       (headerInit, hm) = Header.init
-      mainInit = Model defaultPage headerInit blogInit
+      (postInit, pm) = PostComp.init
+      mainInit = Model defaultPage headerInit blogInit postInit
       (mainModel, _) = urlUpdate result mainInit                       
   in ( mainModel
      , Cmd.map BlogMsg bm )
@@ -43,6 +46,7 @@ init result =
 
 type Msg = BlogMsg Blog.Msg
          | HeaderMsg Header.Msg
+         | PostMsg PostComp.Msg
 
   
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -59,6 +63,12 @@ update msg model =
       in ( { model | headerModel = newHeader}
          , Cmd.map HeaderMsg newMsg
          )
+
+    PostMsg pmsg ->
+      let (newPostComp, newMsg) = PostComp.update pmsg model.postModel
+      in ( { model | postModel = newPostComp }
+         , Cmd.map PostMsg newMsg
+         )
                  
 
 {-| Called on a change of url with the result of url parser and the current
@@ -68,6 +78,9 @@ urlUpdate result model =
   case Debug.log "result" result of
     Err err ->
       (model, Navigation.modifyUrl (toHash model.page))
+    Ok (PostPage slug) ->
+      ( { model | page = PostPage slug}
+      , Cmd.map PostMsg (PostComp.fetchPostBySlug slug model.postModel) ) 
     Ok page ->
       ({ model | page = page }, Cmd.none)
 
@@ -85,7 +98,7 @@ view : Model -> Html Msg
 view model =
   containerFluid_
     [ App.map HeaderMsg (Header.view model.headerModel)
-    , row_ [ colMd_ 12 12 12 [ viewPage model ] ]
+    , viewPage model
     ]
 
 
@@ -95,3 +108,5 @@ viewPage model =
   case model.page of
     HomePage -> App.map BlogMsg (Blog.view model.blogModel)
     BlogPage -> App.map BlogMsg (Blog.view model.blogModel)
+    PostPage slug ->
+      App.map PostMsg (PostComp.view model.postModel)

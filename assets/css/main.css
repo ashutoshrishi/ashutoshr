@@ -11,4 +11,12 @@
   .header li.current a {
     text-decoration: underline; }
 
+/* Posts */
+.post {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px; }
+  .post .post-title a {
+    font-size: 1.5em;
+    cursor: pointer; }
+
 /*# sourceMappingURL=main.css.map */

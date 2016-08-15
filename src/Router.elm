@@ -3,10 +3,10 @@ module Router exposing (Page (..), toHash, hashParser, pageParser
 
 import String
 import Navigation
-import UrlParser exposing (Parser, format, oneOf)
+import UrlParser exposing (Parser, format, oneOf, s, (</>), string)
 
--- |Type representing different accessible pages which will load in the index
-type Page = HomePage | BlogPage
+-- |type representing different accessible pages which will load in the index
+type Page = HomePage | BlogPage | PostPage String
 
 --| Default page to be displayed in the Index page.  
 defaultPage : Page
@@ -25,6 +25,7 @@ toHash page =
   case page of
     HomePage -> "#home"
     BlogPage -> "#blog"
+    PostPage slug -> "#blog/post/" ++ slug
 
 
 {-| Generate a parser which converts the url in [location] to the [Page] type
@@ -39,6 +40,7 @@ hashParser location =
 pageParser : Parser (Page -> a) a
 pageParser =
   oneOf
-    [ format HomePage (UrlParser.s "home")
-    , format BlogPage (UrlParser.s "blog")
+    [ format HomePage (s "home")
+    , format PostPage (s "blog" </> s "post" </> string)
+    , format BlogPage (s "blog")
     ]

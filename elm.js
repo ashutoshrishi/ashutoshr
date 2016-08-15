@@ -14373,45 +14373,155 @@ var _evancz$url_parser$UrlParser$format = F2(
 				}));
 	});
 
-var _user$project$Component_Blog$viewPostTitle = function (p) {
-	return A2(
-		_elm_lang$html$Html$li,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
+var _user$project$Router$toHash = function (page) {
+	var _p0 = page;
+	switch (_p0.ctor) {
+		case 'HomePage':
+			return '#home';
+		case 'BlogPage':
+			return '#blog';
+		default:
+			return A2(_elm_lang$core$Basics_ops['++'], '#blog/post/', _p0._0);
+	}
+};
+var _user$project$Router$PostPage = function (a) {
+	return {ctor: 'PostPage', _0: a};
+};
+var _user$project$Router$BlogPage = {ctor: 'BlogPage'};
+var _user$project$Router$HomePage = {ctor: 'HomePage'};
+var _user$project$Router$defaultPage = _user$project$Router$HomePage;
+var _user$project$Router$routeNames = _elm_lang$core$Native_List.fromArray(
+	[
+		{ctor: '_Tuple2', _0: _user$project$Router$HomePage, _1: 'home'},
+		{ctor: '_Tuple2', _0: _user$project$Router$BlogPage, _1: 'blog'}
+	]);
+var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
+	_elm_lang$core$Native_List.fromArray(
+		[
+			A2(
+			_evancz$url_parser$UrlParser$format,
+			_user$project$Router$HomePage,
+			_evancz$url_parser$UrlParser$s('home')),
+			A2(
+			_evancz$url_parser$UrlParser$format,
+			_user$project$Router$PostPage,
+			A2(
+				_evancz$url_parser$UrlParser_ops['</>'],
+				_evancz$url_parser$UrlParser$s('blog'),
+				A2(
+					_evancz$url_parser$UrlParser_ops['</>'],
+					_evancz$url_parser$UrlParser$s('post'),
+					_evancz$url_parser$UrlParser$string))),
+			A2(
+			_evancz$url_parser$UrlParser$format,
+			_user$project$Router$BlogPage,
+			_evancz$url_parser$UrlParser$s('blog'))
+		]));
+var _user$project$Router$hashParser = function (location) {
+	var hashed = A2(_elm_lang$core$String$dropLeft, 1, location.hash);
+	return A3(_evancz$url_parser$UrlParser$parse, _elm_lang$core$Basics$identity, _user$project$Router$pageParser, hashed);
+};
+
+var _user$project$Component_Types$findPostBy = F3(
+	function (pred, target, posts) {
+		var folder = F2(
+			function (post, acc) {
+				var _p0 = acc;
+				if (_p0.ctor === 'Nothing') {
+					return _elm_lang$core$Native_Utils.eq(
+						pred(post),
+						target) ? _elm_lang$core$Maybe$Just(post) : _elm_lang$core$Maybe$Nothing;
+				} else {
+					return acc;
+				}
+			});
+		return A3(_elm_lang$core$List$foldr, folder, _elm_lang$core$Maybe$Nothing, posts);
+	});
+var _user$project$Component_Types$Post = F3(
+	function (a, b, c) {
+		return {title: a, content: b, slug: c};
+	});
+var _user$project$Component_Types$postDecoder = function () {
+	var slug = A2(_elm_lang$core$Json_Decode_ops[':='], 'slug', _elm_lang$core$Json_Decode$string);
+	var content = A2(_elm_lang$core$Json_Decode_ops[':='], 'content', _elm_lang$core$Json_Decode$string);
+	var title = A2(_elm_lang$core$Json_Decode_ops[':='], 'title', _elm_lang$core$Json_Decode$string);
+	return A4(_elm_lang$core$Json_Decode$object3, _user$project$Component_Types$Post, title, content, slug);
+}();
+var _user$project$Component_Types$postListDecoder = A2(
+	_elm_lang$core$Json_Decode_ops[':='],
+	'posts',
+	_elm_lang$core$Json_Decode$list(_user$project$Component_Types$postDecoder));
+
+var _user$project$Component_Blog$findPostInModelBySlug = F2(
+	function (slug, model) {
+		return A3(
+			_user$project$Component_Types$findPostBy,
+			function (_) {
+				return _.slug;
+			},
+			slug,
+			model.postList);
+	});
+var _user$project$Component_Blog$Model = function (a) {
+	return {postList: a};
+};
+var _user$project$Component_Blog$ViewPostBySlug = function (a) {
+	return {ctor: 'ViewPostBySlug', _0: a};
+};
+var _user$project$Component_Blog$viewPost = function (post) {
+	var titleLink = A2(
+		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html$text(p.title)
+				_elm_lang$html$Html_Attributes$class('post-title')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$a,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Events$onClick(
+						_user$project$Component_Blog$ViewPostBySlug(post.slug))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(post.title)
+					]))
+			]));
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('post')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				titleLink,
+				A2(
+				_elm_lang$html$Html$p,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(post.content)
+					]))
 			]));
 };
 var _user$project$Component_Blog$view = function (model) {
+	var postPage = A2(_elm_lang$core$List$map, _user$project$Component_Blog$viewPost, model.postList);
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				A2(
-				_elm_lang$html$Html$ul,
+				_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
 				_elm_lang$core$Native_List.fromArray(
-					[]),
-				A2(_elm_lang$core$List$map, _user$project$Component_Blog$viewPostTitle, model.postList))
+					[
+						A4(_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_, 12, 12, 6, postPage)
+					]))
 			]));
-};
-var _user$project$Component_Blog$Post = F2(
-	function (a, b) {
-		return {title: a, content: b};
-	});
-var _user$project$Component_Blog$decodePosts = function () {
-	var postDecoder = function () {
-		var content = A2(_elm_lang$core$Json_Decode_ops[':='], 'content', _elm_lang$core$Json_Decode$string);
-		var title = A2(_elm_lang$core$Json_Decode_ops[':='], 'title', _elm_lang$core$Json_Decode$string);
-		return A3(_elm_lang$core$Json_Decode$object2, _user$project$Component_Blog$Post, title, content);
-	}();
-	var postListDecoder = _elm_lang$core$Json_Decode$list(postDecoder);
-	return A2(_elm_lang$core$Json_Decode_ops[':='], 'posts', postListDecoder);
-}();
-var _user$project$Component_Blog$Model = function (a) {
-	return {postList: a};
 };
 var _user$project$Component_Blog$FetchFail = function (a) {
 	return {ctor: 'FetchFail', _0: a};
@@ -14425,7 +14535,7 @@ var _user$project$Component_Blog$fetchPosts = function () {
 		_elm_lang$core$Task$perform,
 		_user$project$Component_Blog$FetchFail,
 		_user$project$Component_Blog$GotPosts,
-		A2(_evancz$elm_http$Http$get, _user$project$Component_Blog$decodePosts, url));
+		A2(_evancz$elm_http$Http$get, _user$project$Component_Types$postListDecoder, url));
 }();
 var _user$project$Component_Blog$init = {
 	ctor: '_Tuple2',
@@ -14448,44 +14558,16 @@ var _user$project$Component_Blog$update = F2(
 						{postList: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			default:
+			case 'FetchFail':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			default:
+				var navigate = _elm_lang$navigation$Navigation$newUrl(
+					_user$project$Router$toHash(
+						_user$project$Router$PostPage(_p0._0)));
+				return {ctor: '_Tuple2', _0: model, _1: navigate};
 		}
 	});
 var _user$project$Component_Blog$GetPosts = {ctor: 'GetPosts'};
-
-var _user$project$Router$toHash = function (page) {
-	var _p0 = page;
-	if (_p0.ctor === 'HomePage') {
-		return '#home';
-	} else {
-		return '#blog';
-	}
-};
-var _user$project$Router$BlogPage = {ctor: 'BlogPage'};
-var _user$project$Router$HomePage = {ctor: 'HomePage'};
-var _user$project$Router$defaultPage = _user$project$Router$HomePage;
-var _user$project$Router$routeNames = _elm_lang$core$Native_List.fromArray(
-	[
-		{ctor: '_Tuple2', _0: _user$project$Router$HomePage, _1: 'home'},
-		{ctor: '_Tuple2', _0: _user$project$Router$BlogPage, _1: 'blog'}
-	]);
-var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
-	_elm_lang$core$Native_List.fromArray(
-		[
-			A2(
-			_evancz$url_parser$UrlParser$format,
-			_user$project$Router$HomePage,
-			_evancz$url_parser$UrlParser$s('home')),
-			A2(
-			_evancz$url_parser$UrlParser$format,
-			_user$project$Router$BlogPage,
-			_evancz$url_parser$UrlParser$s('blog'))
-		]));
-var _user$project$Router$hashParser = function (location) {
-	var hashed = A2(_elm_lang$core$String$dropLeft, 1, location.hash);
-	return A3(_evancz$url_parser$UrlParser$parse, _elm_lang$core$Basics$identity, _user$project$Router$pageParser, hashed);
-};
 
 var _user$project$Component_Header$Model = function (a) {
 	return {activePage: a};
@@ -14587,8 +14669,126 @@ var _user$project$Component_Header$view = function (model) {
 			]));
 };
 
+var _user$project$Component_Post$viewPost = function (post) {
+	var title = A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('post-title')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$h2,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(post.title)
+					]))
+			]));
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('post')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				title,
+				A2(
+				_elm_lang$html$Html$p,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(post.content)
+					]))
+			]));
+};
+var _user$project$Component_Post$view = function (model) {
+	var _p0 = model.displayedPost;
+	if (_p0.ctor === 'Nothing') {
+		return _elm_lang$html$Html$text('Error');
+	} else {
+		return _user$project$Component_Post$viewPost(_p0._0);
+	}
+};
+var _user$project$Component_Post$Model = function (a) {
+	return {displayedPost: a};
+};
+var _user$project$Component_Post$init = {
+	ctor: '_Tuple2',
+	_0: _user$project$Component_Post$Model(_elm_lang$core$Maybe$Nothing),
+	_1: _elm_lang$core$Platform_Cmd$none
+};
+var _user$project$Component_Post$FetchFail = function (a) {
+	return {ctor: 'FetchFail', _0: a};
+};
+var _user$project$Component_Post$GotPost = function (a) {
+	return {ctor: 'GotPost', _0: a};
+};
+var _user$project$Component_Post$fetchPostBySlug = F2(
+	function (slug, model) {
+		var url = A2(_elm_lang$core$Basics_ops['++'], 'http://localhost:3000/post/slug/', slug);
+		var _p1 = A2(_elm_lang$core$Debug$log, 'DISPLAYED: ', model.displayedPost);
+		if (_p1.ctor === 'Nothing') {
+			return A3(
+				_elm_lang$core$Task$perform,
+				_user$project$Component_Post$FetchFail,
+				_user$project$Component_Post$GotPost,
+				A2(_evancz$elm_http$Http$get, _user$project$Component_Types$postDecoder, url));
+		} else {
+			return _elm_lang$core$Native_Utils.eq(_p1._0.slug, slug) ? _elm_lang$core$Platform_Cmd$none : A3(
+				_elm_lang$core$Task$perform,
+				_user$project$Component_Post$FetchFail,
+				_user$project$Component_Post$GotPost,
+				A2(_evancz$elm_http$Http$get, _user$project$Component_Types$postDecoder, url));
+		}
+	});
+var _user$project$Component_Post$update = F2(
+	function (msg, model) {
+		var _p2 = msg;
+		switch (_p2.ctor) {
+			case 'GetPostBySlug':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A2(_user$project$Component_Post$fetchPostBySlug, _p2._0, model)
+				};
+			case 'GotPost':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							displayedPost: _elm_lang$core$Maybe$Just(_p2._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{displayedPost: _elm_lang$core$Maybe$Nothing}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+		}
+	});
+var _user$project$Component_Post$GetPostBySlug = function (a) {
+	return {ctor: 'GetPostBySlug', _0: a};
+};
+
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
+};
+var _user$project$Main$Model = F4(
+	function (a, b, c, d) {
+		return {page: a, headerModel: b, blogModel: c, postModel: d};
+	});
+var _user$project$Main$PostMsg = function (a) {
+	return {ctor: 'PostMsg', _0: a};
 };
 var _user$project$Main$urlUpdate = F2(
 	function (result, model) {
@@ -14601,18 +14801,30 @@ var _user$project$Main$urlUpdate = F2(
 					_user$project$Router$toHash(model.page))
 			};
 		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					model,
-					{page: _p0._0}),
-				_1: _elm_lang$core$Platform_Cmd$none
-			};
+			if (_p0._0.ctor === 'PostPage') {
+				var _p1 = _p0._0._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							page: _user$project$Router$PostPage(_p1)
+						}),
+					_1: A2(
+						_elm_lang$core$Platform_Cmd$map,
+						_user$project$Main$PostMsg,
+						A2(_user$project$Component_Post$fetchPostBySlug, _p1, model.postModel))
+				};
+			} else {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{page: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			}
 		}
-	});
-var _user$project$Main$Model = F3(
-	function (a, b, c) {
-		return {page: a, headerModel: b, blogModel: c};
 	});
 var _user$project$Main$HeaderMsg = function (a) {
 	return {ctor: 'HeaderMsg', _0: a};
@@ -14621,15 +14833,18 @@ var _user$project$Main$BlogMsg = function (a) {
 	return {ctor: 'BlogMsg', _0: a};
 };
 var _user$project$Main$init = function (result) {
-	var _p1 = _user$project$Component_Header$init;
-	var headerInit = _p1._0;
-	var hm = _p1._1;
-	var _p2 = _user$project$Component_Blog$init;
-	var blogInit = _p2._0;
-	var bm = _p2._1;
-	var mainInit = A3(_user$project$Main$Model, _user$project$Router$defaultPage, headerInit, blogInit);
-	var _p3 = A2(_user$project$Main$urlUpdate, result, mainInit);
-	var mainModel = _p3._0;
+	var _p2 = _user$project$Component_Post$init;
+	var postInit = _p2._0;
+	var pm = _p2._1;
+	var _p3 = _user$project$Component_Header$init;
+	var headerInit = _p3._0;
+	var hm = _p3._1;
+	var _p4 = _user$project$Component_Blog$init;
+	var blogInit = _p4._0;
+	var bm = _p4._1;
+	var mainInit = A4(_user$project$Main$Model, _user$project$Router$defaultPage, headerInit, blogInit, postInit);
+	var _p5 = A2(_user$project$Main$urlUpdate, result, mainInit);
+	var mainModel = _p5._0;
 	return {
 		ctor: '_Tuple2',
 		_0: mainModel,
@@ -14638,43 +14853,61 @@ var _user$project$Main$init = function (result) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p4 = msg;
-		if (_p4.ctor === 'BlogMsg') {
-			var _p5 = A2(_user$project$Component_Blog$update, _p4._0, model.blogModel);
-			var newModel = _p5._0;
-			var newMsg = _p5._1;
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					model,
-					{blogModel: newModel}),
-				_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, newMsg)
-			};
-		} else {
-			var _p6 = A2(_user$project$Component_Header$update, _p4._0, model.headerModel);
-			var newHeader = _p6._0;
-			var newMsg = _p6._1;
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					model,
-					{headerModel: newHeader}),
-				_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$HeaderMsg, newMsg)
-			};
+		var _p6 = msg;
+		switch (_p6.ctor) {
+			case 'BlogMsg':
+				var _p7 = A2(_user$project$Component_Blog$update, _p6._0, model.blogModel);
+				var newModel = _p7._0;
+				var newMsg = _p7._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{blogModel: newModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, newMsg)
+				};
+			case 'HeaderMsg':
+				var _p8 = A2(_user$project$Component_Header$update, _p6._0, model.headerModel);
+				var newHeader = _p8._0;
+				var newMsg = _p8._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{headerModel: newHeader}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$HeaderMsg, newMsg)
+				};
+			default:
+				var _p9 = A2(_user$project$Component_Post$update, _p6._0, model.postModel);
+				var newPostComp = _p9._0;
+				var newMsg = _p9._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{postModel: newPostComp}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$PostMsg, newMsg)
+				};
 		}
 	});
 var _user$project$Main$viewPage = function (model) {
-	var _p7 = model.page;
-	if (_p7.ctor === 'HomePage') {
-		return A2(
-			_elm_lang$html$Html_App$map,
-			_user$project$Main$BlogMsg,
-			_user$project$Component_Blog$view(model.blogModel));
-	} else {
-		return A2(
-			_elm_lang$html$Html_App$map,
-			_user$project$Main$BlogMsg,
-			_user$project$Component_Blog$view(model.blogModel));
+	var _p10 = model.page;
+	switch (_p10.ctor) {
+		case 'HomePage':
+			return A2(
+				_elm_lang$html$Html_App$map,
+				_user$project$Main$BlogMsg,
+				_user$project$Component_Blog$view(model.blogModel));
+		case 'BlogPage':
+			return A2(
+				_elm_lang$html$Html_App$map,
+				_user$project$Main$BlogMsg,
+				_user$project$Component_Blog$view(model.blogModel));
+		default:
+			return A2(
+				_elm_lang$html$Html_App$map,
+				_user$project$Main$PostMsg,
+				_user$project$Component_Post$view(model.postModel));
 	}
 };
 var _user$project$Main$view = function (model) {
@@ -14685,19 +14918,7 @@ var _user$project$Main$view = function (model) {
 				_elm_lang$html$Html_App$map,
 				_user$project$Main$HeaderMsg,
 				_user$project$Component_Header$view(model.headerModel)),
-				_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
-				_elm_lang$core$Native_List.fromArray(
-					[
-						A4(
-						_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_,
-						12,
-						12,
-						12,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_user$project$Main$viewPage(model)
-							]))
-					]))
+				_user$project$Main$viewPage(model)
 			]));
 };
 var _user$project$Main$main = {
