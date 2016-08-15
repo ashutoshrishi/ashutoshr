@@ -1,0 +1,24 @@
+.header {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+  p {
+    font-size: 1.75em;
+    padding-top: 10px;
+  }
+  
+  ul {
+    margin-top: 10px;
+  }
+
+  li {
+    a {
+      cursor: pointer
+    }
+  }
+  
+  li.current {
+    a {
+      text-decoration: underline
+    }
+  }
+}
