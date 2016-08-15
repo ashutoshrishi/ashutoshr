@@ -14380,10 +14380,15 @@ var _user$project$Router$toHash = function (page) {
 			return '#home';
 		case 'BlogPage':
 			return '#blog';
-		default:
+		case 'PostPage':
 			return A2(_elm_lang$core$Basics_ops['++'], '#blog/post/', _p0._0);
+		default:
+			return '#error';
 	}
 };
+var _user$project$Router$ErrorPage = {ctor: 'ErrorPage'};
+var _user$project$Router$goErrorPage = _elm_lang$navigation$Navigation$newUrl(
+	_user$project$Router$toHash(_user$project$Router$ErrorPage));
 var _user$project$Router$PostPage = function (a) {
 	return {ctor: 'PostPage', _0: a};
 };
@@ -14415,7 +14420,11 @@ var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
 			A2(
 			_evancz$url_parser$UrlParser$format,
 			_user$project$Router$BlogPage,
-			_evancz$url_parser$UrlParser$s('blog'))
+			_evancz$url_parser$UrlParser$s('blog')),
+			A2(
+			_evancz$url_parser$UrlParser$format,
+			_user$project$Router$ErrorPage,
+			_evancz$url_parser$UrlParser$s('error'))
 		]));
 var _user$project$Router$hashParser = function (location) {
 	var hashed = A2(_elm_lang$core$String$dropLeft, 1, location.hash);
@@ -14731,7 +14740,7 @@ var _user$project$Component_Post$GotPost = function (a) {
 var _user$project$Component_Post$fetchPostBySlug = F2(
 	function (slug, model) {
 		var url = A2(_elm_lang$core$Basics_ops['++'], 'http://localhost:3000/post/slug/', slug);
-		var _p1 = A2(_elm_lang$core$Debug$log, 'DISPLAYED: ', model.displayedPost);
+		var _p1 = model.displayedPost;
 		if (_p1.ctor === 'Nothing') {
 			return A3(
 				_elm_lang$core$Task$perform,
@@ -14772,7 +14781,7 @@ var _user$project$Component_Post$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{displayedPost: _elm_lang$core$Maybe$Nothing}),
-					_1: _elm_lang$core$Platform_Cmd$none
+					_1: _user$project$Router$goErrorPage
 				};
 		}
 	});
@@ -14845,10 +14854,16 @@ var _user$project$Main$init = function (result) {
 	var mainInit = A4(_user$project$Main$Model, _user$project$Router$defaultPage, headerInit, blogInit, postInit);
 	var _p5 = A2(_user$project$Main$urlUpdate, result, mainInit);
 	var mainModel = _p5._0;
+	var updateMsg = _p5._1;
 	return {
 		ctor: '_Tuple2',
 		_0: mainModel,
-		_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, bm)
+		_1: _elm_lang$core$Platform_Cmd$batch(
+			_elm_lang$core$Native_List.fromArray(
+				[
+					updateMsg,
+					A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, bm)
+				]))
 	};
 };
 var _user$project$Main$update = F2(
@@ -14903,11 +14918,20 @@ var _user$project$Main$viewPage = function (model) {
 				_elm_lang$html$Html_App$map,
 				_user$project$Main$BlogMsg,
 				_user$project$Component_Blog$view(model.blogModel));
-		default:
+		case 'PostPage':
 			return A2(
 				_elm_lang$html$Html_App$map,
 				_user$project$Main$PostMsg,
 				_user$project$Component_Post$view(model.postModel));
+		default:
+			return A2(
+				_elm_lang$html$Html$h1,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Something Went Wront..,')
+					]));
 	}
 };
 var _user$project$Main$view = function (model) {

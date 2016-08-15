@@ -9,6 +9,7 @@ import Html.Events exposing ( onFocus, onClick, on )
 import Component.Types exposing (..)
 import Task
 import Http
+import Router exposing (goErrorPage)
 
 -- model
 
@@ -37,7 +38,9 @@ update msg model =
       )
 
     FetchFail err ->
-      ( { model | displayedPost = Nothing }, Cmd.none)
+      ( { model | displayedPost = Nothing }
+      , goErrorPage
+      )
 
 
 -- view
@@ -66,7 +69,7 @@ viewPost post =
 fetchPostBySlug : String -> Model -> Cmd Msg
 fetchPostBySlug slug model =
   let url = "http://localhost:3000/post/slug/" ++ slug            
-  in case Debug.log "DISPLAYED: " model.displayedPost of
+  in case model.displayedPost of
        Nothing -> Task.perform FetchFail GotPost (Http.get postDecoder url)
        Just post ->
          if post.slug == slug

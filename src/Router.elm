@@ -1,12 +1,12 @@
 module Router exposing (Page (..), toHash, hashParser, pageParser
-                       , defaultPage, routeNames )
+                       , defaultPage, routeNames, goErrorPage )
 
 import String
 import Navigation
 import UrlParser exposing (Parser, format, oneOf, s, (</>), string)
 
 -- |type representing different accessible pages which will load in the index
-type Page = HomePage | BlogPage | PostPage String
+type Page = HomePage | BlogPage | PostPage String | ErrorPage 
 
 --| Default page to be displayed in the Index page.  
 defaultPage : Page
@@ -26,6 +26,7 @@ toHash page =
     HomePage -> "#home"
     BlogPage -> "#blog"
     PostPage slug -> "#blog/post/" ++ slug
+    ErrorPage -> "#error"
 
 
 {-| Generate a parser which converts the url in [location] to the [Page] type
@@ -43,4 +44,8 @@ pageParser =
     [ format HomePage (s "home")
     , format PostPage (s "blog" </> s "post" </> string)
     , format BlogPage (s "blog")
+    , format ErrorPage (s "error")
     ]
+
+goErrorPage : Cmd msg
+goErrorPage = Navigation.newUrl (toHash ErrorPage)
