@@ -54,8 +54,12 @@ update msg model =
 view : Model -> Html Msg
 view model =
   let postPage = List.map viewPost model.postList
-  in div []
-    [ row_ [ colMd_ 12 12 6 postPage ] ]
+  in container_
+    [ row_
+        [ colMd_ 12 12 12
+            [ div [class "page-title"] [ text "LATEST POSTS"] ]
+        ]
+    , row_ [ colMd_ 12 12 6 postPage ] ]
 
 
 {-| View a post on the main page of the blog -}      
@@ -64,9 +68,14 @@ viewPost post =
   let titleLink =
         div [class "post-title"]
           [ a [ onClick (ViewPostBySlug post.slug) ] [text post.title] ]
+      createdOn =
+        case post.created of
+          Nothing -> "some random day."
+          Just date -> formattedDate date
   in div [class "post"]
     [ titleLink
-    , p [] [ text post.content ]
+    , div [class "post-date"] [text ("Written on " ++ createdOn)]
+    , p [class "post-content"] [ text post.content ]
     ]
 
 

@@ -66,6 +66,9 @@ viewPost post =
 
 -- FETCHERS
 
+{-| Makes a request to fetch a post identified by a [slug], only if the
+currently displayed post is not the same.
+ -}
 fetchPostBySlug : String -> Model -> Cmd Msg
 fetchPostBySlug slug model =
   let url = "http://localhost:3000/post/slug/" ++ slug            

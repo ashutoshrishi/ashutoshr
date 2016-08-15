@@ -33,11 +33,21 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  let title = p [] [ text "Ashutosh Rishi Ranjan" ]
-  in div [ class "header" ] [row_
-    [ colMd_ 12 12 3 [ title ]
-    , colMd_ 12 12 9 [ headerLinks model.activePage ]
-    ]]
+  let title = p [] [ text "ARR" ]
+      logo = img [ src "assets/images/logo-retina@2x.png"
+                 , height 100 ] []
+  in div [ class "header" ]
+    [ row_
+      [ colMd_ 12 12 6
+          [ div [class "logo"]
+              [ div [class "logo-image"] [ logo ]
+              , div [class "logo-text"] [ text "ARR" ]
+              ]
+          ]
+      ]
+    , row_
+      [ colMd_ 12 12 12 [headerLinks model.activePage] ]
+    ]
 
 
 {-| Create a horizantal list of links to all the routes in [routeNames]. The
