@@ -14,6 +14,7 @@ import Task
 import Navigation
 import Router exposing (..)
 import Component.Types exposing (..)
+import Markdown as Markdown
 
 
 -- MODEL
@@ -44,10 +45,10 @@ update msg model =
     ViewPostBySlug slug ->
       let navigate = Navigation.newUrl (toHash (PostPage slug))
       in (model, navigate)
-      
 
-  
-            
+
+
+
 -- VIEW
 
 {-| Standard view to display all latest blog posts retrieved in the model. -}
@@ -62,7 +63,7 @@ view model =
     , row_ [ colMd_ 12 12 6 postPage ] ]
 
 
-{-| View a post on the main page of the blog -}      
+{-| View a post on the main page of the blog -}
 viewPost : Post -> Html Msg
 viewPost post =
   let titleLink =
@@ -75,11 +76,11 @@ viewPost post =
   in div [class "post"]
     [ titleLink
     , div [class "post-date"] [text ("Written on " ++ createdOn)]
-    , p [class "post-content"] [ text post.content ]
+    , p [class "post-content"] [ Markdown.toHtml [] post.content ]
     ]
 
 
--- FETCHERS 
+-- FETCHERS
 
 {-| Perform a GET request to API endpoint which serves list of latest posts |-}
 fetchPosts : Cmd Msg
@@ -93,4 +94,4 @@ fetchPosts =
 
 
 findPostInModelBySlug : String -> Model -> Maybe Post
-findPostInModelBySlug slug model = findPostBy .slug slug model.postList       
+findPostInModelBySlug slug model = findPostBy .slug slug model.postList
