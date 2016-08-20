@@ -14919,13 +14919,10 @@ var _user$project$Router$toHash = function (page) {
 			return '#blog';
 		case 'PostPage':
 			return A2(_elm_lang$core$Basics_ops['++'], '#blog/post/', _p0._0);
-		case 'ErrorPage':
-			return '#error';
 		default:
-			return '#new';
+			return '#error';
 	}
 };
-var _user$project$Router$NewPostPage = {ctor: 'NewPostPage'};
 var _user$project$Router$ErrorPage = {ctor: 'ErrorPage'};
 var _user$project$Router$goErrorPage = _elm_lang$navigation$Navigation$newUrl(
 	_user$project$Router$toHash(_user$project$Router$ErrorPage));
@@ -14938,8 +14935,7 @@ var _user$project$Router$defaultPage = _user$project$Router$HomePage;
 var _user$project$Router$routeNames = _elm_lang$core$Native_List.fromArray(
 	[
 		{ctor: '_Tuple2', _0: _user$project$Router$HomePage, _1: 'home'},
-		{ctor: '_Tuple2', _0: _user$project$Router$BlogPage, _1: 'blog'},
-		{ctor: '_Tuple2', _0: _user$project$Router$NewPostPage, _1: 'new post'}
+		{ctor: '_Tuple2', _0: _user$project$Router$BlogPage, _1: 'blog'}
 	]);
 var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
 	_elm_lang$core$Native_List.fromArray(
@@ -14965,11 +14961,7 @@ var _user$project$Router$pageParser = _evancz$url_parser$UrlParser$oneOf(
 			A2(
 			_evancz$url_parser$UrlParser$format,
 			_user$project$Router$ErrorPage,
-			_evancz$url_parser$UrlParser$s('error')),
-			A2(
-			_evancz$url_parser$UrlParser$format,
-			_user$project$Router$NewPostPage,
-			_evancz$url_parser$UrlParser$s('new'))
+			_evancz$url_parser$UrlParser$s('error'))
 		]));
 var _user$project$Router$hashParser = function (location) {
 	var hashed = A2(_elm_lang$core$String$dropLeft, 1, location.hash);
@@ -15180,217 +15172,6 @@ var _user$project$Component_Blog$update = F2(
 		}
 	});
 var _user$project$Component_Blog$GetPosts = {ctor: 'GetPosts'};
-
-var _user$project$Component_Editor$sanitiseContent = function (str) {
-	return str;
-};
-var _user$project$Component_Editor$toggleWrap = F2(
-	function (c, str) {
-		var wrap = _elm_lang$core$String$fromChar(c);
-		return (A2(_elm_lang$core$String$startsWith, wrap, str) && A2(_elm_lang$core$String$endsWith, wrap, str)) ? A3(_elm_lang$core$String$slice, 1, -1, str) : A2(
-			_elm_lang$core$Basics_ops['++'],
-			wrap,
-			A2(_elm_lang$core$Basics_ops['++'], str, wrap));
-	});
-var _user$project$Component_Editor$toggleWrapRange = F5(
-	function (c, str, sel, start, end) {
-		if (_elm_lang$core$Native_Utils.eq(sel, '')) {
-			return str;
-		} else {
-			var wrapped = A2(_user$project$Component_Editor$toggleWrap, c, sel);
-			var beginSlice = A3(_elm_lang$core$String$slice, 0, start, str);
-			var strLen = _elm_lang$core$String$length(str);
-			var endSlice = A3(_elm_lang$core$String$slice, end, strLen, str);
-			return A2(
-				_elm_lang$core$Basics_ops['++'],
-				beginSlice,
-				A2(_elm_lang$core$Basics_ops['++'], wrapped, endSlice));
-		}
-	});
-var _user$project$Component_Editor$innerHtmlDecoder = A2(
-	_elm_lang$core$Json_Decode$at,
-	_elm_lang$core$Native_List.fromArray(
-		['target', 'innerHTML']),
-	_elm_lang$core$Json_Decode$string);
-var _user$project$Component_Editor$makeToolButton = F2(
-	function (name, action) {
-		return A2(
-			_elm_lang$html$Html$li,
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html_Events$onClick(action)
-				]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html$text(name)
-				]));
-	});
-var _user$project$Component_Editor$checkSelection = _elm_lang$core$Native_Platform.outgoingPort(
-	'checkSelection',
-	function (v) {
-		return v;
-	});
-var _user$project$Component_Editor$getSelected = _elm_lang$core$Native_Platform.incomingPort(
-	'getSelected',
-	A2(
-		_elm_lang$core$Json_Decode$andThen,
-		A2(_elm_lang$core$Json_Decode_ops[':='], 'text', _elm_lang$core$Json_Decode$string),
-		function (text) {
-			return A2(
-				_elm_lang$core$Json_Decode$andThen,
-				A2(_elm_lang$core$Json_Decode_ops[':='], 'start', _elm_lang$core$Json_Decode$int),
-				function (start) {
-					return A2(
-						_elm_lang$core$Json_Decode$andThen,
-						A2(_elm_lang$core$Json_Decode_ops[':='], 'end', _elm_lang$core$Json_Decode$int),
-						function (end) {
-							return _elm_lang$core$Json_Decode$succeed(
-								{text: text, start: start, end: end});
-						});
-				});
-		}));
-var _user$project$Component_Editor$Model = F3(
-	function (a, b, c) {
-		return {content: a, representaition: b, selected: c};
-	});
-var _user$project$Component_Editor$Selection = F3(
-	function (a, b, c) {
-		return {text: a, start: b, end: c};
-	});
-var _user$project$Component_Editor$defaultSelection = A3(_user$project$Component_Editor$Selection, '', 0, 0);
-var _user$project$Component_Editor$init = {
-	ctor: '_Tuple2',
-	_0: A3(_user$project$Component_Editor$Model, '', '', _user$project$Component_Editor$defaultSelection),
-	_1: _elm_lang$core$Platform_Cmd$none
-};
-var _user$project$Component_Editor$selectionWrap = F2(
-	function (ch, model) {
-		var sel = model.selected;
-		var newContent = A5(_user$project$Component_Editor$toggleWrapRange, ch, model.content, sel.text, sel.start, sel.end);
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{content: newContent, selected: _user$project$Component_Editor$defaultSelection});
-	});
-var _user$project$Component_Editor$makeBold = _user$project$Component_Editor$selectionWrap(
-	_elm_lang$core$Native_Utils.chr('*'));
-var _user$project$Component_Editor$makeUnderline = _user$project$Component_Editor$selectionWrap(
-	_elm_lang$core$Native_Utils.chr('_'));
-var _user$project$Component_Editor$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'Edited':
-				var formatted = _user$project$Component_Editor$sanitiseContent(
-					A2(_elm_lang$core$Debug$log, 'Content', _p0._0));
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							content: A2(_elm_lang$core$Debug$log, 'Formatted', formatted)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'CheckSelection':
-				return {
-					ctor: '_Tuple2',
-					_0: model,
-					_1: _user$project$Component_Editor$checkSelection('editor-area')
-				};
-			case 'Bold':
-				return {
-					ctor: '_Tuple2',
-					_0: _user$project$Component_Editor$makeBold(model),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Underline':
-				return {
-					ctor: '_Tuple2',
-					_0: _user$project$Component_Editor$makeUnderline(model),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			default:
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							selected: A2(_elm_lang$core$Debug$log, 'SELECTED', _p0._0)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-		}
-	});
-var _user$project$Component_Editor$Underline = {ctor: 'Underline'};
-var _user$project$Component_Editor$Bold = {ctor: 'Bold'};
-var _user$project$Component_Editor$viewToolbar = function (model) {
-	return A2(
-		_elm_lang$html$Html$ul,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('editor-toolbar')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(_user$project$Component_Editor$makeToolButton, 'Bold', _user$project$Component_Editor$Bold),
-				A2(_user$project$Component_Editor$makeToolButton, 'Underline', _user$project$Component_Editor$Underline)
-			]));
-};
-var _user$project$Component_Editor$CheckSelection = {ctor: 'CheckSelection'};
-var _user$project$Component_Editor$Selected = function (a) {
-	return {ctor: 'Selected', _0: a};
-};
-var _user$project$Component_Editor$subscriptions = function (model) {
-	return _user$project$Component_Editor$getSelected(_user$project$Component_Editor$Selected);
-};
-var _user$project$Component_Editor$Edited = function (a) {
-	return {ctor: 'Edited', _0: a};
-};
-var _user$project$Component_Editor$view = function (model) {
-	var toolbar = _user$project$Component_Editor$viewToolbar(model);
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('editor')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('editor-top')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[toolbar])),
-				A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('editor-text'),
-						_elm_lang$html$Html_Attributes$contenteditable(true),
-						_elm_lang$html$Html_Attributes$id('editor-area'),
-						_elm_lang$html$Html_Events$onMouseUp(_user$project$Component_Editor$CheckSelection),
-						A2(
-						_elm_lang$html$Html_Events$on,
-						'input',
-						A2(_elm_lang$core$Json_Decode$map, _user$project$Component_Editor$Edited, _user$project$Component_Editor$innerHtmlDecoder)),
-						A2(
-						_elm_lang$html$Html_Attributes$property,
-						'innerHTML',
-						_elm_lang$core$Json_Encode$string(model.content))
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[])),
-				A2(
-				_elm_lang$html$Html$br,
-				_elm_lang$core$Native_List.fromArray(
-					[]),
-				_elm_lang$core$Native_List.fromArray(
-					[]))
-			]));
-};
 
 var _user$project$Component_Header$Model = function (a) {
 	return {activePage: a};
@@ -15644,19 +15425,13 @@ var _user$project$Component_Post$GetPostBySlug = function (a) {
 	return {ctor: 'GetPostBySlug', _0: a};
 };
 
-var _user$project$Main$Model = F5(
-	function (a, b, c, d, e) {
-		return {page: a, headerModel: b, blogModel: c, postModel: d, editorModel: e};
-	});
-var _user$project$Main$EditorMsg = function (a) {
-	return {ctor: 'EditorMsg', _0: a};
-};
 var _user$project$Main$subscriptions = function (model) {
-	return A2(
-		_elm_lang$core$Platform_Sub$map,
-		_user$project$Main$EditorMsg,
-		_user$project$Component_Editor$subscriptions(model.editorModel));
+	return _elm_lang$core$Platform_Sub$none;
 };
+var _user$project$Main$Model = F4(
+	function (a, b, c, d) {
+		return {page: a, headerModel: b, blogModel: c, postModel: d};
+	});
 var _user$project$Main$PostMsg = function (a) {
 	return {ctor: 'PostMsg', _0: a};
 };
@@ -15703,22 +15478,19 @@ var _user$project$Main$BlogMsg = function (a) {
 	return {ctor: 'BlogMsg', _0: a};
 };
 var _user$project$Main$init = function (result) {
-	var _p2 = _user$project$Component_Editor$init;
-	var editorInit = _p2._0;
-	var em = _p2._1;
-	var _p3 = _user$project$Component_Post$init;
-	var postInit = _p3._0;
-	var pm = _p3._1;
-	var _p4 = _user$project$Component_Header$init;
-	var headerInit = _p4._0;
-	var hm = _p4._1;
-	var _p5 = _user$project$Component_Blog$init;
-	var blogInit = _p5._0;
-	var bm = _p5._1;
-	var mainInit = A5(_user$project$Main$Model, _user$project$Router$defaultPage, headerInit, blogInit, postInit, editorInit);
-	var _p6 = A2(_user$project$Main$urlUpdate, result, mainInit);
-	var mainModel = _p6._0;
-	var updateMsg = _p6._1;
+	var _p2 = _user$project$Component_Post$init;
+	var postInit = _p2._0;
+	var pm = _p2._1;
+	var _p3 = _user$project$Component_Header$init;
+	var headerInit = _p3._0;
+	var hm = _p3._1;
+	var _p4 = _user$project$Component_Blog$init;
+	var blogInit = _p4._0;
+	var bm = _p4._1;
+	var mainInit = A4(_user$project$Main$Model, _user$project$Router$defaultPage, headerInit, blogInit, postInit);
+	var _p5 = A2(_user$project$Main$urlUpdate, result, mainInit);
+	var mainModel = _p5._0;
+	var updateMsg = _p5._1;
 	return {
 		ctor: '_Tuple2',
 		_0: mainModel,
@@ -15732,12 +15504,12 @@ var _user$project$Main$init = function (result) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p7 = msg;
-		switch (_p7.ctor) {
+		var _p6 = msg;
+		switch (_p6.ctor) {
 			case 'BlogMsg':
-				var _p8 = A2(_user$project$Component_Blog$update, _p7._0, model.blogModel);
-				var newModel = _p8._0;
-				var newMsg = _p8._1;
+				var _p7 = A2(_user$project$Component_Blog$update, _p6._0, model.blogModel);
+				var newModel = _p7._0;
+				var newMsg = _p7._1;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -15746,9 +15518,9 @@ var _user$project$Main$update = F2(
 					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$BlogMsg, newMsg)
 				};
 			case 'HeaderMsg':
-				var _p9 = A2(_user$project$Component_Header$update, _p7._0, model.headerModel);
-				var newHeader = _p9._0;
-				var newMsg = _p9._1;
+				var _p8 = A2(_user$project$Component_Header$update, _p6._0, model.headerModel);
+				var newHeader = _p8._0;
+				var newMsg = _p8._1;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -15756,10 +15528,10 @@ var _user$project$Main$update = F2(
 						{headerModel: newHeader}),
 					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$HeaderMsg, newMsg)
 				};
-			case 'PostMsg':
-				var _p10 = A2(_user$project$Component_Post$update, _p7._0, model.postModel);
-				var newPostComp = _p10._0;
-				var newMsg = _p10._1;
+			default:
+				var _p9 = A2(_user$project$Component_Post$update, _p6._0, model.postModel);
+				var newPostComp = _p9._0;
+				var newMsg = _p9._1;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -15767,22 +15539,11 @@ var _user$project$Main$update = F2(
 						{postModel: newPostComp}),
 					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$PostMsg, newMsg)
 				};
-			default:
-				var _p11 = A2(_user$project$Component_Editor$update, _p7._0, model.editorModel);
-				var newEditor = _p11._0;
-				var newMsg = _p11._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{editorModel: newEditor}),
-					_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Main$EditorMsg, newMsg)
-				};
 		}
 	});
 var _user$project$Main$viewPage = function (model) {
-	var _p12 = model.page;
-	switch (_p12.ctor) {
+	var _p10 = model.page;
+	switch (_p10.ctor) {
 		case 'HomePage':
 			return A2(
 				_elm_lang$html$Html_App$map,
@@ -15798,7 +15559,7 @@ var _user$project$Main$viewPage = function (model) {
 				_elm_lang$html$Html_App$map,
 				_user$project$Main$PostMsg,
 				_user$project$Component_Post$view(model.postModel));
-		case 'ErrorPage':
+		default:
 			return A2(
 				_elm_lang$html$Html$h1,
 				_elm_lang$core$Native_List.fromArray(
@@ -15806,23 +15567,6 @@ var _user$project$Main$viewPage = function (model) {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text('Something Went Wront..,')
-					]));
-		default:
-			return _circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
-				_elm_lang$core$Native_List.fromArray(
-					[
-						A4(
-						_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_,
-						12,
-						12,
-						6,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								A2(
-								_elm_lang$html$Html_App$map,
-								_user$project$Main$EditorMsg,
-								_user$project$Component_Editor$view(model.editorModel))
-							]))
 					]));
 	}
 };

@@ -10,7 +10,7 @@ import Router exposing (..)
 import Component.Blog as Blog
 import Component.Header as Header
 import Component.Post as PostComp
-import Component.Editor as Editor
+
 
 main =
   Navigation.program (Navigation.makeParser hashParser)
@@ -29,7 +29,6 @@ type alias Model =
   , headerModel : Header.Model
   , blogModel : Blog.Model
   , postModel : PostComp.Model
-  , editorModel : Editor.Model
   }
 
 
@@ -38,8 +37,7 @@ init result =
   let (blogInit, bm) = Blog.init
       (headerInit, hm) = Header.init
       (postInit, pm) = PostComp.init
-      (editorInit, em) = Editor.init
-      mainInit = Model defaultPage headerInit blogInit postInit editorInit
+      mainInit = Model defaultPage headerInit blogInit postInit
       (mainModel, updateMsg) = urlUpdate result mainInit                       
   in ( mainModel
      , Cmd.batch [ updateMsg, Cmd.map BlogMsg bm ]
@@ -51,7 +49,7 @@ init result =
 type Msg = BlogMsg Blog.Msg
          | HeaderMsg Header.Msg
          | PostMsg PostComp.Msg
-         | EditorMsg Editor.Msg
+
 
   
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -74,13 +72,6 @@ update msg model =
       in ( { model | postModel = newPostComp }
          , Cmd.map PostMsg newMsg
          )
-
-    -- Temporary editor developemtn
-    EditorMsg emsg ->
-      let (newEditor, newMsg) = Editor.update emsg model.editorModel
-      in ( { model | editorModel=newEditor }
-         , Cmd.map EditorMsg newMsg
-         )
                  
 
 {-| Called on a change of url with the result of url parser and the current
@@ -101,7 +92,7 @@ urlUpdate result model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.map EditorMsg (Editor.subscriptions model.editorModel)
+  Sub.none
   
 -- VIEW            
 
@@ -124,10 +115,4 @@ viewPage model =
     PostPage slug ->
       App.map PostMsg (PostComp.view model.postModel)
     ErrorPage ->
-      h1 [] [ text "Something Went Wront..," ]
-    NewPostPage ->
-      row_
-        [ colMd_ 12 12 6 
-            [App.map EditorMsg (Editor.view model.editorModel)]
-        ]
-      
+      h1 [] [ text "Something Went Wront..," ]      

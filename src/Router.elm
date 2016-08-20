@@ -10,7 +10,7 @@ type Page = HomePage
           | BlogPage
           | PostPage String
           | ErrorPage
-          | NewPostPage 
+
 
 --| Default page to be displayed in the Index page.  
 defaultPage : Page
@@ -21,7 +21,6 @@ routeNames : List (Page, String)
 routeNames =
   [ (HomePage, "home")
   , (BlogPage, "blog")
-  , (NewPostPage, "new post")
   ]
 
 --| Convert the give [page] to it's corresponding url.
@@ -32,7 +31,7 @@ toHash page =
     BlogPage      -> "#blog"
     PostPage slug -> "#blog/post/" ++ slug
     ErrorPage     -> "#error"
-    NewPostPage   -> "#new"
+
 
 
 {-| Generate a parser which converts the url in [location] to the [Page] type
@@ -51,7 +50,6 @@ pageParser =
     , format PostPage (s "blog" </> s "post" </> string)
     , format BlogPage (s "blog")
     , format ErrorPage (s "error")
-    , format NewPostPage (s "new")
     ]
 
 goErrorPage : Cmd msg
