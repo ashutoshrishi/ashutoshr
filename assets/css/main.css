@@ -37,11 +37,12 @@
   border-bottom: 1px solid #eee;
   margin-bottom: 20px; }
   .header ul {
-    margin-top: 10px;
-    margin-bottom: 10px; }
-  .header li a {
-    cursor: pointer;
-    font-size: 1.5em; }
+    margin-top: 25px; }
+  .header li {
+    float: right; }
+    .header li a {
+      cursor: pointer;
+      font-size: 1.5em; }
   .header li.current a {
     text-decoration: underline; }
 
@@ -69,8 +70,9 @@
 
 /* Posts */
 .post {
-  border-bottom: 1px solid #eee;
-  margin-bottom: 10px; }
+  border-bottom: 1px solid #d8d8d8;
+  margin-bottom: 20px;
+  padding-bottom: 20px; }
   .post .post-title a {
     font-size: 2em;
     cursor: pointer; }
@@ -79,5 +81,7 @@
   .post .post-content {
     margin-top: 10px;
     margin-bottom: 10px; }
+    .post .post-content p {
+      font-size: 1.2em; }
 
 /*# sourceMappingURL=main.css.map */

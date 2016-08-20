@@ -10,6 +10,7 @@ import Component.Types exposing (..)
 import Task
 import Http
 import Router exposing (goErrorPage)
+import Markdown
 
 -- model
 
@@ -49,20 +50,33 @@ view : Model -> Html Msg
 view model =
   case model.displayedPost of
     Nothing -> text "Error"
-    Just post -> viewPost post 
+    Just post ->
+      container_
+        [ row_
+            [ colMd_ 12 12 8
+                [ viewPost post ]
+            ]
+        ]
 
 
 viewPost : Post -> Html Msg
-viewPost post = 
+viewPost post =
   let title =
         div [class "post-title"]
-          [ h2 [] [text post.title] ]
+          [ h1 [] [text post.title] ]
+      createdOn =
+        case post.created of
+          Nothing -> "some random day."
+          Just date -> formattedDate date
   in div [class "post"]
-    [ title
-    , p [] [ text post.content ]
+    [ br [] []
+    , title
+    , div [class "post-date"] [text ("Written on " ++ createdOn)]
+    , br [] []
+    , renderMarkdown post.content "post-content"
     ]
 
-  
+
 
 -- FETCHERS
 
@@ -71,7 +85,7 @@ currently displayed post is not the same.
  -}
 fetchPostBySlug : String -> Model -> Cmd Msg
 fetchPostBySlug slug model =
-  let url = "http://localhost:3000/post/slug/" ++ slug            
+  let url = "http://localhost:3000/post/slug/" ++ slug
   in case model.displayedPost of
        Nothing -> Task.perform FetchFail GotPost (Http.get postDecoder url)
        Just post ->

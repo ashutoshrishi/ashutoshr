@@ -100,7 +100,7 @@ subscriptions model =
 current url page. -}
 view : Model -> Html Msg
 view model =
-  containerFluid_
+  container_
     [ App.map HeaderMsg (Header.view model.headerModel)
     , viewPage model
     ]

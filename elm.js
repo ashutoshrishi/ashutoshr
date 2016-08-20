@@ -14971,6 +14971,73 @@ var _user$project$Router$hashParser = function (location) {
 var _user$project$Component_Types$formattedDate = function (date) {
 	return A2(_mgold$elm_date_format$Date_Format$format, '%d %b %Y at %I:%M %p', date);
 };
+var _user$project$Component_Types$renderMarkdown = F2(
+	function (str, cls) {
+		var options = {
+			githubFlavored: _elm_lang$core$Maybe$Just(
+				{tables: true, breaks: false}),
+			defaultHighlighting: _elm_lang$core$Maybe$Just('haskell'),
+			sanitize: false,
+			smartypants: true
+		};
+		return _elm_lang$core$Native_Utils.eq(cls, '') ? A3(
+			_evancz$elm_markdown$Markdown$toHtmlWith,
+			options,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			str) : A3(
+			_evancz$elm_markdown$Markdown$toHtmlWith,
+			options,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$class(cls)
+				]),
+			str);
+	});
+var _user$project$Component_Types$renderPostBody = F3(
+	function (isExcerpt, post, action) {
+		if ((_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$String$length(post.content),
+			500) > 0) && isExcerpt) {
+			var excerpt = A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(_elm_lang$core$String$left, 500, post.content),
+				' ...');
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(_user$project$Component_Types$renderMarkdown, excerpt, 'post-content'),
+						A2(
+						_elm_lang$html$Html$p,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$a,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Events$onClick(
+										action(post.slug)),
+										_elm_lang$html$Html_Attributes$style(
+										_elm_lang$core$Native_List.fromArray(
+											[
+												{ctor: '_Tuple2', _0: 'cursor', _1: 'pointer'}
+											]))
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('Read More')
+									]))
+							]))
+					]));
+		} else {
+			return A2(_user$project$Component_Types$renderMarkdown, post.content, 'post-content');
+		}
+	});
 var _user$project$Component_Types$findPostBy = F3(
 	function (pred, target, posts) {
 		var folder = F2(
@@ -15077,20 +15144,7 @@ var _user$project$Component_Blog$viewPost = function (post) {
 						_elm_lang$html$Html$text(
 						A2(_elm_lang$core$Basics_ops['++'], 'Written on ', createdOn))
 					])),
-				A2(
-				_elm_lang$html$Html$p,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('post-content')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						A2(
-						_evancz$elm_markdown$Markdown$toHtml,
-						_elm_lang$core$Native_List.fromArray(
-							[]),
-						post.content)
-					]))
+				A3(_user$project$Component_Types$renderPostBody, true, post, _user$project$Component_Blog$ViewPostBySlug)
 			]));
 };
 var _user$project$Component_Blog$view = function (model) {
@@ -15123,7 +15177,7 @@ var _user$project$Component_Blog$view = function (model) {
 				_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
 				_elm_lang$core$Native_List.fromArray(
 					[
-						A4(_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_, 12, 12, 6, postPage)
+						A4(_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_, 12, 12, 8, postPage)
 					]))
 			]));
 };
@@ -15296,16 +15350,12 @@ var _user$project$Component_Header$view = function (model) {
 												_elm_lang$html$Html$text('ARR')
 											]))
 									]))
-							]))
-					])),
-				_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
-				_elm_lang$core$Native_List.fromArray(
-					[
+							])),
 						A4(
 						_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_,
 						12,
 						12,
-						12,
+						6,
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_user$project$Component_Header$headerLinks(model.activePage)
@@ -15315,6 +15365,14 @@ var _user$project$Component_Header$view = function (model) {
 };
 
 var _user$project$Component_Post$viewPost = function (post) {
+	var createdOn = function () {
+		var _p0 = post.created;
+		if (_p0.ctor === 'Nothing') {
+			return 'some random day.';
+		} else {
+			return _user$project$Component_Types$formattedDate(_p0._0);
+		}
+	}();
 	var title = A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -15324,7 +15382,7 @@ var _user$project$Component_Post$viewPost = function (post) {
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(
-				_elm_lang$html$Html$h2,
+				_elm_lang$html$Html$h1,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
 				_elm_lang$core$Native_List.fromArray(
@@ -15340,23 +15398,55 @@ var _user$project$Component_Post$viewPost = function (post) {
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				title,
 				A2(
-				_elm_lang$html$Html$p,
+				_elm_lang$html$Html$br,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
 				_elm_lang$core$Native_List.fromArray(
+					[])),
+				title,
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html$text(post.content)
-					]))
+						_elm_lang$html$Html_Attributes$class('post-date')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(_elm_lang$core$Basics_ops['++'], 'Written on ', createdOn))
+					])),
+				A2(
+				_elm_lang$html$Html$br,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[])),
+				A2(_user$project$Component_Types$renderMarkdown, post.content, 'post-content')
 			]));
 };
 var _user$project$Component_Post$view = function (model) {
-	var _p0 = model.displayedPost;
-	if (_p0.ctor === 'Nothing') {
+	var _p1 = model.displayedPost;
+	if (_p1.ctor === 'Nothing') {
 		return _elm_lang$html$Html$text('Error');
 	} else {
-		return _user$project$Component_Post$viewPost(_p0._0);
+		return _circuithub$elm_bootstrap_html$Bootstrap_Html$container_(
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_circuithub$elm_bootstrap_html$Bootstrap_Html$row_(
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A4(
+							_circuithub$elm_bootstrap_html$Bootstrap_Html$colMd_,
+							12,
+							12,
+							8,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_user$project$Component_Post$viewPost(_p1._0)
+								]))
+						]))
+				]));
 	}
 };
 var _user$project$Component_Post$Model = function (a) {
@@ -15376,15 +15466,15 @@ var _user$project$Component_Post$GotPost = function (a) {
 var _user$project$Component_Post$fetchPostBySlug = F2(
 	function (slug, model) {
 		var url = A2(_elm_lang$core$Basics_ops['++'], 'http://localhost:3000/post/slug/', slug);
-		var _p1 = model.displayedPost;
-		if (_p1.ctor === 'Nothing') {
+		var _p2 = model.displayedPost;
+		if (_p2.ctor === 'Nothing') {
 			return A3(
 				_elm_lang$core$Task$perform,
 				_user$project$Component_Post$FetchFail,
 				_user$project$Component_Post$GotPost,
 				A2(_evancz$elm_http$Http$get, _user$project$Component_Types$postDecoder, url));
 		} else {
-			return _elm_lang$core$Native_Utils.eq(_p1._0.slug, slug) ? _elm_lang$core$Platform_Cmd$none : A3(
+			return _elm_lang$core$Native_Utils.eq(_p2._0.slug, slug) ? _elm_lang$core$Platform_Cmd$none : A3(
 				_elm_lang$core$Task$perform,
 				_user$project$Component_Post$FetchFail,
 				_user$project$Component_Post$GotPost,
@@ -15393,13 +15483,13 @@ var _user$project$Component_Post$fetchPostBySlug = F2(
 	});
 var _user$project$Component_Post$update = F2(
 	function (msg, model) {
-		var _p2 = msg;
-		switch (_p2.ctor) {
+		var _p3 = msg;
+		switch (_p3.ctor) {
 			case 'GetPostBySlug':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: A2(_user$project$Component_Post$fetchPostBySlug, _p2._0, model)
+					_1: A2(_user$project$Component_Post$fetchPostBySlug, _p3._0, model)
 				};
 			case 'GotPost':
 				return {
@@ -15407,7 +15497,7 @@ var _user$project$Component_Post$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							displayedPost: _elm_lang$core$Maybe$Just(_p2._0)
+							displayedPost: _elm_lang$core$Maybe$Just(_p3._0)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -15571,7 +15661,7 @@ var _user$project$Main$viewPage = function (model) {
 	}
 };
 var _user$project$Main$view = function (model) {
-	return _circuithub$elm_bootstrap_html$Bootstrap_Html$containerFluid_(
+	return _circuithub$elm_bootstrap_html$Bootstrap_Html$container_(
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(

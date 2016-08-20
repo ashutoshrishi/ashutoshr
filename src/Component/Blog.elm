@@ -14,7 +14,7 @@ import Task
 import Navigation
 import Router exposing (..)
 import Component.Types exposing (..)
-import Markdown as Markdown
+import Markdown
 
 
 -- MODEL
@@ -60,7 +60,7 @@ view model =
         [ colMd_ 12 12 12
             [ div [class "page-title"] [ text "LATEST POSTS"] ]
         ]
-    , row_ [ colMd_ 12 12 6 postPage ] ]
+    , row_ [ colMd_ 12 12 8 postPage ] ]
 
 
 {-| View a post on the main page of the blog -}
@@ -76,9 +76,8 @@ viewPost post =
   in div [class "post"]
     [ titleLink
     , div [class "post-date"] [text ("Written on " ++ createdOn)]
-    , p [class "post-content"] [ Markdown.toHtml [] post.content ]
+    , renderPostBody True post ViewPostBySlug
     ]
-
 
 -- FETCHERS
 
