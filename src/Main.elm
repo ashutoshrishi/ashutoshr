@@ -36,7 +36,8 @@ type alias Model =
 init : Result String Page -> (Model, Cmd Msg)
 init result =
   let (blogInit, bm) = Blog.init
-      (headerInit, hm) = Header.init
+      (headerInit, hm) =
+        Header.init (Result.withDefault defaultPage result )
       (postInit, pm) = PostComp.init
       mainInit = Model defaultPage headerInit blogInit postInit
       (mainModel, updateMsg) = urlUpdate result mainInit                       
@@ -104,6 +105,7 @@ view model =
   container_
     [ App.map HeaderMsg (Header.view model.headerModel)
     , viewPage model
+    , viewFooter
     ]
 
 
@@ -115,6 +117,21 @@ viewPage model =
     PostPage slug ->
       App.map PostMsg (PostComp.view model.postModel)
     ErrorPage ->
-      h1 [] [ text "Something Went Wront..," ]
+      div [ class "error-404" ]
+        [ glyphiconExclamationSign_
+        , br [] []
+        , text "404"
+        ]
     AboutPage ->
       About.view
+
+{-| Simple footer -}
+viewFooter : Html Msg
+viewFooter =
+  div [ class "footer" ]
+    [ row_
+        [ colMd_ 12 12 4
+            [ p [] [ glyphiconCopyrightMark_
+                   , text " 2016 Ashutosh Rishi Ranjan"] ]
+        ]
+    ]
