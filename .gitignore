@@ -36,4 +36,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Project specific
 .sass-cache
+elm.js
