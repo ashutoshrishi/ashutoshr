@@ -44,11 +44,8 @@ view model =
               , div [class "logo-text"] [ text "ARR" ]
               ]
           ]
-      , colMd_ 12 12 6 [headerLinks model.activePage]
-        
+      , colMd_ 12 12 6 [headerLinks model.activePage]        
       ]
-    -- , row_
-    --   [ colMd_ 12 12 12 [headerLinks model.activePage] ]
     ]
 
 

@@ -115,4 +115,8 @@ viewPage model =
     PostPage slug ->
       App.map PostMsg (PostComp.view model.postModel)
     ErrorPage ->
-      h1 [] [ text "Something Went Wront..," ]      
+      h1 [] [ text "Something Went Wront..," ]
+    ContactPage ->
+      h1 [] [ text "Contact me" ]
+    ProjectsPage ->
+      h1 [] [ text "Projects" ]
