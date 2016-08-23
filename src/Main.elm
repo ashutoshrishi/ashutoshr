@@ -10,7 +10,7 @@ import Router exposing (..)
 import Component.Blog as Blog
 import Component.Header as Header
 import Component.Post as PostComp
-import Component.Contact as Contact
+import Component.About as About
 
 
 main =
@@ -116,4 +116,5 @@ viewPage model =
       App.map PostMsg (PostComp.view model.postModel)
     ErrorPage ->
       h1 [] [ text "Something Went Wront..," ]
-    ContactPage -> Contact.view 
+    AboutPage ->
+      About.view

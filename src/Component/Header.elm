@@ -14,8 +14,9 @@ type alias Model =
   { activePage : Page }
 
 
-init : (Model, Cmd Msg)
-init = (Model defaultPage, Cmd.none)
+{-| Init with the first active page. -}    
+init : Page -> (Model, Cmd Msg)
+init page = (Model page, Cmd.none)
 
 -- update
 
@@ -34,14 +35,14 @@ update msg model =
 view : Model -> Html Msg
 view model =
   let title = p [] [ text "ARR" ]
-      logo = img [ src "assets/images/logo-retina@2x.png"
+      logo = img [ src "assets/images/logo.png"
                  , height 100 ] []
   in div [ class "header" ]
     [ row_
       [ colMd_ 12 12 4
           [ div [class "logo"]
               [ div [class "logo-image"] [ logo ]
-              , div [class "logo-text"] [ text "ARR" ]
+              -- , div [class "logo-text"] [ text "ARR" ]
               ]
           ]
       , colMd_ 12 12 8 [headerLinks model.activePage]        

@@ -9,7 +9,7 @@ import UrlParser exposing (Parser, format, oneOf, s, (</>), string)
 type Page = BlogPage
           | PostPage String
           | ErrorPage
-          | ContactPage
+          | AboutPage
 
 
 --| Default page to be displayed in the Index page.  
@@ -20,7 +20,7 @@ defaultPage = BlogPage
 routeNames : List (Page, String)
 routeNames =
   [ (BlogPage, "blog")
-  -- , (ContactPage, "contact me")
+  , (AboutPage, "about me")
   ]
 
 --| Convert the give [page] to it's corresponding url.
@@ -30,7 +30,7 @@ toHash page =
     BlogPage      -> "#blog"
     PostPage slug -> "#blog/post/" ++ slug
     ErrorPage     -> "#error"
-    ContactPage   -> "#contact"
+    AboutPage     -> "#about"
 
 
 {-| Generate a parser which converts the url in [location] to the [Page] type
@@ -48,7 +48,7 @@ pageParser =
     [ format PostPage (s "blog" </> s "post" </> string)
     , format BlogPage (s "blog")
     , format ErrorPage (s "error")
-    , format ContactPage (s "contact")
+    , format AboutPage (s "about")
     ]
 
 goErrorPage : Cmd msg
