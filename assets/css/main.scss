@@ -1,5 +1,6 @@
-@import 'editor';
-
+body {
+  font-family: 'Open Sans', sans-serif;
+}
 
 .header {
   border-bottom: 1px solid #eee;
@@ -78,5 +79,12 @@
     p {
       font-size: 1.2em;
     }
+  }
+}
+
+
+.about-page {
+  p {
+    font-size: 1.2em;
   }
 }
