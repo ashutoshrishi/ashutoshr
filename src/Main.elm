@@ -10,6 +10,7 @@ import Router exposing (..)
 import Component.Blog as Blog
 import Component.Header as Header
 import Component.Post as PostComp
+import Component.Contact as Contact
 
 
 main =
@@ -110,13 +111,9 @@ view model =
 viewPage : Model -> Html Msg
 viewPage model =
   case model.page of
-    HomePage -> App.map BlogMsg (Blog.view model.blogModel)
     BlogPage -> App.map BlogMsg (Blog.view model.blogModel)
     PostPage slug ->
       App.map PostMsg (PostComp.view model.postModel)
     ErrorPage ->
       h1 [] [ text "Something Went Wront..," ]
-    ContactPage ->
-      h1 [] [ text "Contact me" ]
-    ProjectsPage ->
-      h1 [] [ text "Projects" ]
+    ContactPage -> Contact.view 

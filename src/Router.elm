@@ -6,37 +6,31 @@ import Navigation
 import UrlParser exposing (Parser, format, oneOf, s, (</>), string)
 
 -- |type representing different accessible pages which will load in the index
-type Page = HomePage
-          | BlogPage
+type Page = BlogPage
           | PostPage String
           | ErrorPage
           | ContactPage
-          | ProjectsPage
 
 
 --| Default page to be displayed in the Index page.  
 defaultPage : Page
-defaultPage = HomePage
+defaultPage = BlogPage
 
 --| Assoc list of Page -> human readable name.              
 routeNames : List (Page, String)
 routeNames =
-  [ (HomePage, "home")
-  , (BlogPage, "blog")
-  , (ContactPage, "contact me")
-  , (ProjectsPage, "projects")
+  [ (BlogPage, "blog")
+  -- , (ContactPage, "contact me")
   ]
 
 --| Convert the give [page] to it's corresponding url.
 toHash : Page -> String
 toHash page =
   case page of
-    HomePage      -> "#home"
     BlogPage      -> "#blog"
     PostPage slug -> "#blog/post/" ++ slug
     ErrorPage     -> "#error"
     ContactPage   -> "#contact"
-    ProjectsPage  -> "#projects"
 
 
 {-| Generate a parser which converts the url in [location] to the [Page] type
@@ -51,12 +45,10 @@ hashParser location =
 pageParser : Parser (Page -> a) a
 pageParser =
   oneOf
-    [ format HomePage (s "home")
-    , format PostPage (s "blog" </> s "post" </> string)
+    [ format PostPage (s "blog" </> s "post" </> string)
     , format BlogPage (s "blog")
     , format ErrorPage (s "error")
     , format ContactPage (s "contact")
-    , format ProjectsPage (s "projects")
     ]
 
 goErrorPage : Cmd msg

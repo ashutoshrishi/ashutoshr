@@ -38,13 +38,13 @@ view model =
                  , height 100 ] []
   in div [ class "header" ]
     [ row_
-      [ colMd_ 12 12 6
+      [ colMd_ 12 12 4
           [ div [class "logo"]
               [ div [class "logo-image"] [ logo ]
               , div [class "logo-text"] [ text "ARR" ]
               ]
           ]
-      , colMd_ 12 12 6 [headerLinks model.activePage]        
+      , colMd_ 12 12 8 [headerLinks model.activePage]        
       ]
     ]
 
@@ -55,7 +55,12 @@ differently and hence [active] is threaded through the function.
 -}    
 headerLinks : Page -> Html Msg
 headerLinks active =
-  ul [ class "nav nav-pills" ] (List.map (makeLink active) routeNames)
+  let links =
+        List.append socialLinks
+          <| List.map (makeLink active) <| List.reverse routeNames
+          
+  in ul [ class "nav nav-pills" ] links
+    
 
 {-| Creates a link with text [to], clicking which invokes a message to change
 the models' active page to [page]. The link corresponding to the page [active]
@@ -66,3 +71,15 @@ makeLink active (page, to) =
   let activeClass = if active == page then "current" else ""
       link = a [ onClick (ChangePage page) ] [ text to ]
   in li [ class activeClass ] [ link ]
+
+
+{-| List of links which lead away from the blog -}    
+socialLinks : List (Html Msg)
+socialLinks =
+  let linkTo name to =
+        li [] [ a [ href to ] [ text name ]
+              ]
+      links = [ ("bitbucket", "https://bitbucket.org/ashutoshrishi")
+              , ("github", "https://github.com/ashutoshrishi")
+              ]
+  in List.map (uncurry linkTo) links
