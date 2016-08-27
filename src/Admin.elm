@@ -1,4 +1,3 @@
-
 import Bootstrap.Html exposing (..)
 import Html exposing (..)
 import Html.App as App
@@ -6,11 +5,11 @@ import Html.Attributes exposing (..)
 import Html.Events exposing ( onClick )
 
 import Component.Types exposing (..)
-
+import Component.Login as Login
 
 -- Model
 
-main = 
+main =
   App.program
     { init          = init
     , view          = view
@@ -38,6 +37,7 @@ init =
 -- Update
 
 type Msg = ChangePage AdminPage
+         | LoginMsg Login.Msg
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -45,6 +45,11 @@ update msg model =
   case msg of
     ChangePage p ->
       ( { model | displayPage = p }
+      , Cmd.none
+      )
+
+    LoginMsg m ->
+      ( model
       , Cmd.none
       )
 
@@ -60,6 +65,14 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
+  if model.loggedIn
+  then viewAdminPage model
+  else (App.map LoginMsg Login.view)
+
+
+
+viewAdminPage : Model -> Html Msg
+viewAdminPage model =
   let page = case model.displayPage of
                PostListPage -> viewPostList model
                AddPostPage -> h1 [] [ text "Add A new Post someday" ]
@@ -73,7 +86,7 @@ view model =
 
 
 viewIconBar : Html Msg
-viewIconBar =  
+viewIconBar =
   div [ class "admin-nav" ]
     [ ul []
         [ li [] [ glyphiconList_ ]
@@ -81,8 +94,8 @@ viewIconBar =
         , li [] [ glyphiconHome_ ]
         ]
     ]
-    
-    
+
+
 viewAdminBar : Html Msg
 viewAdminBar =
   navbarDefault' "admin-top-bar"
@@ -96,7 +109,7 @@ viewAdminBar =
 viewPostList : Model -> Html Msg
 viewPostList model =
   div [ class "admin-post-list-row" ]
-    [ row_ [ colMd_ 12 12 12               
+    [ row_ [ colMd_ 12 12 12
                [ div [ class "admin-title"] [ text "Showing all Posts" ] ]
            ]
     , row_ [ colMd_ 12 12 6

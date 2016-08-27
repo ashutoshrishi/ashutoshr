@@ -4,6 +4,10 @@ $break-small: 786px;
 $break-large: 1200px;
 
 
+html, body {
+  height: 100%;
+}
+
 body {
   font-family: 'Open Sans', sans-serif;
 }
