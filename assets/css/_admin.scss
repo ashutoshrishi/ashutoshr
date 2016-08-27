@@ -1,0 +1,47 @@
+$bluehue: #8186d2;
+
+.admin-top-bar {
+  margin-bottom: 0px;
+}
+
+.admin-nav {
+  ul {
+    list-style-type: none;
+    display: table;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+
+    li {
+      text-align: center;
+      padding: 10px;
+      display: table-cell;
+      margin: 0;
+      background-color: #f5f5f5;
+      font-size: 1.75em;
+      color: $bluehue;
+    }
+  }
+}
+
+
+.admin-main {
+  .row {
+    border-bottom: 1px solid #f8f8f8;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+                       
+
+  .admin-title {
+    font-size: 18px;
+    color: $bluehue;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 10px 10px;
+  }
+}
+
+.admin-post-list-row {
+
+}

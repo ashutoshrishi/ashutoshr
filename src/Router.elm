@@ -20,7 +20,7 @@ defaultPage = BlogPage
 routeNames : List (Page, String)
 routeNames =
   [ (BlogPage, "blog")
-  , (AboutPage, "about me")
+  , (AboutPage, "about me")    
   ]
 
 --| Convert the give [page] to it's corresponding url.
@@ -31,7 +31,6 @@ toHash page =
     PostPage slug -> "#blog/post/" ++ slug
     ErrorPage     -> "#error"
     AboutPage     -> "#about"
-
 
 {-| Generate a parser which converts the url in [location] to the [Page] type
 or fail.

@@ -39,8 +39,10 @@ init result =
       (headerInit, hm) =
         Header.init (Result.withDefault defaultPage result )
       (postInit, pm) = PostComp.init
+      -- Combine
       mainInit = Model defaultPage headerInit blogInit postInit
-      (mainModel, updateMsg) = urlUpdate result mainInit                       
+      -- Initial update
+      (mainModel, updateMsg) = urlUpdate result mainInit
   in ( mainModel
      , Cmd.batch [ updateMsg, Cmd.map BlogMsg bm ]
      )
@@ -53,7 +55,7 @@ type Msg = BlogMsg Blog.Msg
          | PostMsg PostComp.Msg
 
 
-  
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
@@ -74,7 +76,8 @@ update msg model =
       in ( { model | postModel = newPostComp }
          , Cmd.map PostMsg newMsg
          )
-                 
+
+
 
 {-| Called on a change of url with the result of url parser and the current
 model. -}
@@ -85,7 +88,7 @@ urlUpdate result model =
       (model, Navigation.modifyUrl (toHash model.page))
     Ok (PostPage slug) ->
       ( { model | page = PostPage slug}
-      , Cmd.map PostMsg (PostComp.fetchPostBySlug slug model.postModel) ) 
+      , Cmd.map PostMsg (PostComp.fetchPostBySlug slug model.postModel) )
     Ok page ->
       ({ model | page = page }, Cmd.none)
 
@@ -95,35 +98,39 @@ urlUpdate result model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
-  
--- VIEW            
+
+-- VIEW
 
 {-| View the Index page, with the content area changing according to the
 current url page. -}
 view : Model -> Html Msg
 view model =
-  container_
+  containerFluid_
     [ App.map HeaderMsg (Header.view model.headerModel)
     , viewPage model
     , viewFooter
     ]
 
 
-{-| Run the view function for the current page in the model. -}  
+{-| Run the view function for the current page in the model. -}
 viewPage : Model -> Html Msg
 viewPage model =
   case model.page of
     BlogPage -> App.map BlogMsg (Blog.view model.blogModel)
+
     PostPage slug ->
       App.map PostMsg (PostComp.view model.postModel)
+
     ErrorPage ->
       div [ class "error-404" ]
         [ glyphiconExclamationSign_
         , br [] []
         , text "404"
         ]
+
     AboutPage ->
       About.view
+
 
 {-| Simple footer -}
 viewFooter : Html Msg

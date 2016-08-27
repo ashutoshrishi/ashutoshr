@@ -57,10 +57,9 @@ differently and hence [active] is threaded through the function.
 headerLinks : Page -> Html Msg
 headerLinks active =
   let links =
-        List.append socialLinks
-          <| List.map (makeLink active) <| List.reverse routeNames
+        List.append (List.map (makeLink active) routeNames) socialLinks
           
-  in ul [ class "nav nav-pills" ] links
+  in ul [ class "nav nav-pills pull-right" ] links
     
 
 {-| Creates a link with text [to], clicking which invokes a message to change

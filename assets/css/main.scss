@@ -1,6 +1,13 @@
+
+/* Useful Variables */
+$break-small: 786px;
+$break-large: 1200px;
+
+
 body {
   font-family: 'Open Sans', sans-serif;
 }
+
 
 .header {
   border-bottom: 1px solid #eee;
@@ -11,7 +18,6 @@ body {
   }
 
   li {
-    float: right;
     a {
       cursor: pointer;
       font-size: 1.5em;
@@ -106,3 +112,5 @@ body {
   text-align: center;
   color: #d07c7c;
 }
+
+@import "admin";
