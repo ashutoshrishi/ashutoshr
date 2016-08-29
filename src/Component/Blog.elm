@@ -1,6 +1,12 @@
-module Component.Blog exposing ( Model, init, Msg, update, view
-                               , findPostInModelBySlug )
-
+module Component.Blog
+    exposing
+        ( Model
+        , init
+        , Msg
+        , update
+        , view
+        , findPostInModelBySlug
+        )
 
 import Bootstrap.Html exposing (..)
 import Html exposing (..)
@@ -19,73 +25,105 @@ import Markdown
 
 -- MODEL
 
-type alias Model =
-  { postList  : List Post }
 
-init : (Model, Cmd Msg)
-init = (Model [], fetchPosts)
+type alias Model =
+    { postList : List Post }
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( Model [], fetchPosts )
+
 
 
 -- UPDATE
 
-type Msg = GetPosts
-         | GotPosts (List Post)
-         | FetchFail Http.Error
-         | ViewPostBySlug String
+
+type Msg
+    = GetPosts
+    | GotPosts (List Post)
+    | FetchFail Http.Error
+    | ViewPostBySlug String
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    GetPosts -> (model, fetchPosts)
-    GotPosts ps -> ({model | postList = ps}, Cmd.none)
+    case msg of
+        GetPosts ->
+            ( model, fetchPosts )
 
-    FetchFail err -> ( model, Cmd.none )
+        GotPosts ps ->
+            ( { model | postList = ps }, Cmd.none )
 
-    ViewPostBySlug slug ->
-      let navigate = Navigation.newUrl (toHash (PostPage slug))
-      in (model, navigate)
+        FetchFail err ->
+            ( model, Cmd.none )
 
+        ViewPostBySlug slug ->
+            let
+                navigate =
+                    Navigation.newUrl (toHash (PostPage slug))
+            in
+                ( model, navigate )
 
 
 
 -- VIEW
 
-{-| Standard view to display all latest blog posts retrieved in the model. -}
+
+{-| Standard view to display all latest blog posts retrieved in the model.
+-}
 view : Model -> Html Msg
 view model =
-  let postPage = List.map viewPost model.postList
-  in container_
-    [ row_
-        [ colMd_ 12 12 12
-            [ div [class "page-title"] [ text "LATEST POSTS"] ]
-        ]
-    , row_ [ colMd_ 12 12 8 postPage ] ]
+    let
+        postPage =
+            List.map viewPost model.postList
+    in
+        container_
+            [ row_
+                [ colMd_ 12 12 12
+                    [ div [ class "page-title" ] [ text "LATEST POSTS" ] ]
+                ]
+            , row_ [ colMd_ 12 12 8 postPage ]
+            ]
 
 
-{-| View a post on the main page of the blog -}
+{-| View a post on the main page of the blog
+-}
 viewPost : Post -> Html Msg
 viewPost post =
-  let titleLink =
-        div [class "post-title"]
-          [ a [ onClick (ViewPostBySlug post.slug) ] [text post.title] ]
-      createdOn =
-        case post.created of
-          Nothing -> "some random day."
-          Just date -> formattedDate date
-  in div [class "post"]
-    [ titleLink
-    , div [class "post-date"] [text ("Written on " ++ createdOn)]
-    , renderPostBody True post ViewPostBySlug
-    ]
+    let
+        titleLink =
+            div [ class "post-title" ]
+                [ a [ onClick (ViewPostBySlug post.slug) ] [ text post.title ] ]
+
+        createdOn =
+            case post.created of
+                Nothing ->
+                    "some random day."
+
+                Just date ->
+                    formattedDate date
+    in
+        div [ class "post" ]
+            [ titleLink
+            , div [ class "post-date" ] [ text ("Written on " ++ createdOn) ]
+            , renderPostBody True post ViewPostBySlug
+            ]
+
+
 
 -- FETCHERS
 
-{-| Perform a GET request to API endpoint which serves list of latest posts |-}
+
+{-| Perform a GET request to API endpoint which serves list of latest posts |
+-}
 fetchPosts : Cmd Msg
 fetchPosts =
-  let url = "http://localhost:3000/posts"
-  in Task.perform FetchFail GotPosts (Http.get postListDecoder url)
+    let
+        url =
+            "http://localhost:3000/posts"
+    in
+        Task.perform FetchFail GotPosts (Http.get postListDecoder url)
 
 
 
@@ -93,4 +131,5 @@ fetchPosts =
 
 
 findPostInModelBySlug : String -> Model -> Maybe Post
-findPostInModelBySlug slug model = findPostBy .slug slug model.postList
+findPostInModelBySlug slug model =
+    findPostBy .slug slug model.postList
